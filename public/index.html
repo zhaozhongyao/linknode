@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<!--
+	Aerial 1.0 by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>HOMELINK - AN IOT SYSTEM</title>
+		<style>
+		#elevator_item{width:60px;height:50px;position:fixed;right:15px;bottom:10px;-webkit-transition:opacity .4s ease-in-out;-moz-transition:opacity .4s ease-in-out;-o-transition:opacity .4s ease-in-out;opacity:1;z-index:100020; display:none;}
+		#elevator_item.off{opacity:0;visibility:hidden}
+		#elevator{display:block;width:60px;height:50px;background:url(img/icon_top.png) center center no-repeat;background-color:#444;background-color:rgba(0,0,0,.6);border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:pointer;margin-bottom:10px}
+		#elevator:hover{background-color:rgba(0,0,0,.7)}
+		#elevator:active{background-color:rgba(0,0,0,.75)}
+		#elevator_item .qr{display:block;width:60px;height:40px;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:pointer;background:url(img/icon_code.png) center center no-repeat;background-color:#444;background-color:rgba(0,0,0,.6)}
+		#elevator_item .qr:hover{background-color:rgba(0,0,0,.7)}
+		#elevator_item .qr:active{background-color:rgba(0,0,0,.75)}
+		#elevator_item .qr-popup{width:170px;height:170px;background:#fff;box-shadow:0 1px 8px rgba(0,0,0,.1);position:absolute;left:-180px;bottom:0;border-radius:2px;display:none}
+		#elevator_item .qr-popup .code-link{display:block;margin:10px;color:#777}
+
+		#elevator_item .qr-popup .arr{width:6px;height:11px;background:url(img/code_arrow.png) 0 0 no-repeat;position:absolute;right:-6px;bottom:24px}
+		</style>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+		<script src="js/jquery.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/init.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				$("#elevator_item").show();	
+				$("#elevator").click(function(){
+					$("html,body").animate({scrollTop: 0}, 500);	
+				});		
+				$(".fa-qrcode").hover(function(){
+					$(".qr-popup").show();
+				},function(){
+					$(".qr-popup").hide();
+				});	
+				$(".qr").hover(function(){
+					$(".qr-popup").show();
+				},function(){
+					$(".qr-popup").hide();
+				});	
+			});
+		</script>
+		<noscript>
+			<link rel="stylesheet" href="css/skel.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-wide.css" />
+			<link rel="stylesheet" href="css/style-noscript.css" />
+		</noscript>
+		<!--[if lte IE 9]><link rel="stylesheet" href="css/ie/v9.css" /><![endif]-->
+		<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+	</head>
+	<body class="loading">
+		<div id="wrapper">
+			<div id="bg"></div>
+			<div id="overlay"></div>
+			<div id="main">
+
+				<!-- Header -->
+					<header id="header">
+						<h1>HOMELINK</h1>
+						<p>It takes all sorts to make a world.</p>
+						<nav>
+							<ul>
+								<li><a href="https://twitter.com/zhaozhongyao" class="fa fa-youtube-play"><span>Video</span></a></li>
+								<li><a href="/panel" class="fa fa-cloud"><span>Enter</span></a></li>
+								<li><a href="#" class="fa fa-qrcode"><span>QRCode</span></a></li>
+								<li><a href="https://github.com/zhaozhongyao" class="fa fa-github"><span>Github</span></a></li>
+								<li><a href="http://stath.at/sh/Qz5yPJzUlEiEiGrF" class="fa fa-bar-chart-o"><span>Charts</span></a></li>
+							</ul>
+						</nav>
+					</header>
+
+				<!-- Footer -->
+					<footer id="footer">
+					<div id="elevator_item"> </a> <a class="qr"></a>
+						<div class="qr-popup"> <a class="code-link"> <img class="code" src="img/qrcode.jpg"/> </a>
+							<div class="arr"></div>
+						</div>
+					</div>
+						<span class="copyright"><a href="http://0x61.me">&copy; SKYWORKS</a></span>
+					</footer>
+				
+			</div>
+		</div>
+	</body>
+</html>

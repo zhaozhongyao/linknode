@@ -1,0 +1,14 @@
+{
+  "name": "bae-nodejs",
+  "version": "1.0.0",
+  "author": "bae",
+  "description": "The first bae nodejs app with express!",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "3.x",
+    "redis": "0.9.1",
+    "moment": "^2.6.0"
+  }
+}
