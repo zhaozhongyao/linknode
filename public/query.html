@@ -1,0 +1,51 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<title>demo</title>
+<link rel="stylesheet" type="text/css" href="css/main.css" />
+<style type="text/css">
+.demo{width:400px; margin:50px auto}
+#userlist{margin:4px; height:42px}
+#userlist li{float:left; width:80px; line-height:42px; height:42px; font-size:14px; font-weight:bold}
+#info{clear:left; padding:6px; border:1px solid #b6d6e6; background:#e8f5fe}
+#info p{line-height:24px}
+#info p span{font-weight:bold}
+</style>
+<script src="js/jquery-1.10.2.js"></script>
+<script type="text/javascript">
+$(function(){
+	$("#userlist a").bind("click",function(){
+		var hol = $(this).attr("rel");
+		var url = "/device/"+hol;
+		$.getJSON(url, function(json){ 
+            $("#DeviceId").html(json.DeviceId);
+			$("#IsSuccess").html(json.IsSuccess);
+			$("#NSlots").html(json.NSlots);
+			$("#State").html(json.State);
+			$("#ServerTime").html(json.ServerTime);
+       }); 
+	});
+});
+</script>
+</head>
+<body>
+
+<div id="main">
+  <div class="demo">
+     <p>hint:click</p>
+     <ul id="userlist">
+        <li><a href="#" rel="00000001">00000001</a></li>
+        <li><a href="#" rel="00000002">00000002</a></li>
+        <li><a href="#" rel="00000003">00000003</a></li>
+     </ul>
+     <div id="info">
+       <p>DeviceId:<span id="DeviceId"></span></p>
+       <p>IsSuccess:<span id="IsSuccess"></span></p>
+       <p>NSlots:<span id="NSlots"></span></p>
+       <p>State:<span id="State"></span></p>
+	   <p>ServerTime:<span id="ServerTime"></span></p>
+     </div>
+  </div>
+</div>
+</body>
+</html>
