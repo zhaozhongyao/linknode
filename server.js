@@ -17,8 +17,8 @@ var sockets = [];
 var port = 5566;
 var guestId = 0;
 
-var redis = require('redis');	//need change to MongoDB.
-var username = 'mokFrawqakB29yzOyEbQi9lZ';         
+var redis = require('redis');	//need change to MongoDB. 
+var username = 'mokFrawqakB29yzOyEbQi9lZ';         //branch dev test.
 var password = 't1if8OxjHKNZiCUZ8BIB7axGAskhK9tY'; 
 var db_host = 'redis.duapp.com';   
 var db_port = 80;
