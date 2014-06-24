@@ -94,7 +94,7 @@ function setRedis(devId, userId, slotId , slotState , callback) {
 }
 
 function replacePos(strObj, pos, replacetext , callback) {
-	if (strObj.length > 5) {
+	if (strObj.length > 5 || strObj == null) {
 		strObj = '00000'
 		if ((pos > 0) && (pos < 6)) {
 			var str = strObj.substr(0, pos-1) + replacetext + strObj.substring(pos, strObj.length);
