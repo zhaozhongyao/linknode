@@ -14,16 +14,11 @@ var app = express();
 var httpport = 18080;
 var net = require('net');
 var sockets = [];
-var port = 5566;
+var port = 30059;
 var guestId = 0;
 
 var redis = require('redis');	//need change to MongoDB. 
-var username = 'mokFrawqakB29yzOyEbQi9lZ';         //branch dev test.
-var password = 't1if8OxjHKNZiCUZ8BIB7axGAskhK9tY'; 
-var db_host = 'redis.duapp.com';   
-var db_port = 80;
-var db_name = 'mFOxVJbbxPkGyeMbVIAO';       
-var options = {"no_ready_check":true};
+var db_port = 6379;
 
 var Users = {
 	"Device1"  : "00000000",
@@ -32,12 +27,10 @@ var Users = {
 };
 	
 function bindRedis(FromUserName, deviceId , callback) {
-	var client = redis.createClient(db_port, db_host, options);
+	var client = redis.createClient(db_port);
 	client.on("error", function (err) {
 		console.log("Error " + err);
 	});
-
-	client.auth(username + '-' + password + '-' + db_name);
 
 	client.set(FromUserName, deviceId);
 
@@ -51,11 +44,10 @@ function bindRedis(FromUserName, deviceId , callback) {
 }
 
 function setRedis(devId, userId, slotId , slotState , callback) {
-	var client = redis.createClient(db_port, db_host, options);
+	var client = redis.createClient(db_port);
 	client.on("error", function (err) {
 		console.log("Error " + err);
 	});
-	client.auth(username + '-' + password + '-' + db_name);
 	if(devId == null) {
 		client.get(userId, function(err, deviceId) {
 			if (err) {
@@ -126,11 +118,10 @@ function replacePos(strObj, pos, replacetext , callback) {
 }
 
 function getRedis(key , callback) {
-	var client = redis.createClient(db_port, db_host, options);
+	var client = redis.createClient(db_port);
 	client.on("error", function (err) {
 		console.log("Error " + err);
 	});
-	client.auth(username + '-' + password + '-' + db_name);
 	client.get(key, function(err, value) {
 		if (err) {
 			console.log(err);   
