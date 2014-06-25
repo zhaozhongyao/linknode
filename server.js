@@ -550,6 +550,7 @@ function authenticate(name, pass, fn) {
 
 function restrict(req, res, next) {
   if (req.session.user) {
+  	console.log("User: " + req.session.user);
     next();
   } else {
     req.session.error = 'Access denied!';
