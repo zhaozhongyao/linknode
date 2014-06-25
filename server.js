@@ -626,9 +626,7 @@ app.post('/register', function(req, res){
 app.post('/login', function(req, res){
   authenticate(req.body.uname, req.body.password, function(err, userinfo){
 	console.log("UserInfo:" + userinfo);
-	var str = JSON.stringify(userinfo);
-	console.log(str);
-	var user = JSON.parse(str);
+	var user = JSON.parse(userinfo);
 	console.log(user.param);
     if (user) {
       // Regenerate session when signing in
@@ -637,11 +635,11 @@ app.post('/login', function(req, res){
         // Store the user's primary key
         // in the session store to be retrieved,
         // or in this case the entire user object
-        req.session.user = user;
+        req.session.user = user.name;
         req.session.success = 'Authenticated as ' + user.name
           + ' click to <a href="/logout">logout</a>. '
           + ' You may now access <a href="/panel">/panel</a>.';
-		console.log("Login success:" + user);
+		console.log("Login success:" + user.name);
         res.redirect('/panel');
       });
     } else {
