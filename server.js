@@ -529,7 +529,7 @@ function authenticate(name, pass, fn) {
 			}
 			if (userinfo.HASH == hash) {
 				console.log("User authenticate success:" + Users.USERNAME);
-				return fn(null, userinfo); // yay
+				return fn(null, temp); // yay
 			}
 			fn(new Error('invalid password'));
 		});
