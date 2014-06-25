@@ -9,6 +9,7 @@ var hash = require('./pass').hash;
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
+var pass = require('pwd');
 
 var app = express();
 var httpport = 18080;
@@ -17,23 +18,75 @@ var sockets = [];
 var port = 30059;
 var guestId = 0;
 
-var redis = require('redis');	//need change to MongoDB. 
+var redis = require('redis'); 
 var db_port = 6379;
 
 var Users = {
-	"Device1"  : "00000000",
-	"Device2"  : "00000000",
-	"Device3"  : "00000000"
+	"USERNAME"  : "",
+	"EMAIL"  : "",
+	"SALT"	: "",
+	"HASH"	: "",
+	"DEVICEID"  : "",
+	"TOKIN"  : ""
 };
-	
+
+function UserRegister(Username, JsonUser, callback) {
+	var client = redis.createClient(db_port);
+	client.on("error", function (err) {
+		console.log("Error " + err);
+	});
+	if (JsonUser == "") {
+		client.del(Username);
+		client.get(Username, function(err, result) {
+			if (err) {
+				console.log(err);
+			}
+			callback("User has been deleted!");    
+		});
+	} else {
+		client.get(Username, function(err, result) {
+			if (err) {
+				console.log(err);
+			}
+			if (result == null) {
+				client.set(Username, JsonUser);
+				client.get(Username, function(err, result) {
+					if (err) {
+						console.log(err);
+					}
+					console.log(result);
+					callback(result);    
+				});
+			} else {
+				callback("Username already exist!");  
+			}
+		});  
+	}
+}
+
+function UserQuery(Username, callback) {
+	var client = redis.createClient(db_port);
+	client.on("error", function (err) {
+		console.log("Error " + err);
+	});
+	console.log("Username" + Username);
+	client.get(Username, function(err, result) {
+		if (err) {
+			console.log(err);
+		}
+		console.log("UserQuery" + result);
+		callback(result);    
+	});
+}
+
 function bindRedis(FromUserName, deviceId , callback) {
 	var client = redis.createClient(db_port);
 	client.on("error", function (err) {
 		console.log("Error " + err);
 	});
-
+ 
 	client.set(FromUserName, deviceId);
-
+ 
 	client.get(FromUserName, function(err, result) {
 		if (err) {
 			console.log(err);
@@ -42,7 +95,7 @@ function bindRedis(FromUserName, deviceId , callback) {
 		callback(result);    
 	}); 
 }
-
+ 
 function setRedis(devId, userId, slotId , slotState , callback) {
 	var client = redis.createClient(db_port);
 	client.on("error", function (err) {
@@ -90,9 +143,9 @@ function setRedis(devId, userId, slotId , slotState , callback) {
 			callback("NOTFOUND"); 
 		}
 	}
-
+ 
 }
-
+ 
 function replacePos(strObj, pos, replacetext , callback) {
 	if (strObj == null ||strObj.length > 5) {
 		strObj = '00000'
@@ -116,7 +169,7 @@ function replacePos(strObj, pos, replacetext , callback) {
 		}
 	}
 }
-
+ 
 function getRedis(key , callback) {
 	var client = redis.createClient(db_port);
 	client.on("error", function (err) {
@@ -451,23 +504,53 @@ app.use(function(req, res, next){
   next();
 });
 
-var users = {
-  root: { name: 'root' }
-};
-
 function authenticate(name, pass, fn) {
-  if (!module.parent) console.log('authenticating %s:%s', name, pass);
-  var user = users[name];
-  // query the db for the given username
-  if (!user) return fn(new Error('cannot find user'));
+	var userinfo = {
+		"USERNAME"  : "",
+		"EMAIL"  : "",
+		"SALT"	: "",
+		"HASH"	: "",
+		"DEVICEID"  : "",
+		"TOKIN"  : ""
+	};
+	if (!module.parent) console.log('authenticating %s:%s', name, pass);
+	UserQuery(name, function(temp) {
+		userinfo = temp;
+		var str = JSON.stringify(temp);
+		console.log("str:" + str);
+
+		var aaa = JSON.parse(str);
+		console.log("param:" + aaa.param);
+		
+		console.log("Query Result:" + userinfo);
+		console.log("userinfo.SALT:" + userinfo.SALT);
+		if (!userinfo) {
+			console.log("cannot find user");
+			return fn(new Error('cannot find user'));
+		}
+		pass.hash(pass, userinfo.SALT, function(err, hash){
+			if (err) {
+				return fn(err);
+			}
+			if (userinfo.HASH == hash) {
+				console.log("User authenticate success:" + Users.USERNAME);
+				return fn(null, userinfo); // yay
+			}
+			fn(new Error('invalid password'));
+		});
+	});
+	// query the db for the given username
+
   // apply the same algorithm to the POSTed password, applying
   // the hash against the pass / salt, if there is a match we
   // found the user
-  hash(pass, user.salt, function(err, hash){
-    if (err) return fn(err);
-    if (hash == user.hash) return fn(null, user);
-    fn(new Error('invalid password'));
-  });
+ // hash(pass, user.salt, function(err, hash){
+ //   if (err) return fn(err);
+ //   if (hash == user.hash) return fn(null, user);
+ //   fn(new Error('invalid password'));
+ // });
+  
+
 }
 
 function restrict(req, res, next) {
@@ -478,13 +561,6 @@ function restrict(req, res, next) {
     res.redirect('/login');
   }
 }
-
-hash('root', function(err, salt, hash){
-  if (err) throw err;
-  // store the salt & hash in the "db"
-  users.root.salt = salt;
-  users.root.hash = hash;
-});
 
 // Listening for any problems with the server
 server.on('error', function(error) {
@@ -503,12 +579,15 @@ app.use(function(err, req, res, next){
 });
 
 app.get('/panel', restrict, function(req, res){
-  //res.send('Wahoo! restricted area, click to <a href="/logout">logout</a>');
   res.sendfile('./public/admin.html');
 });
 
 app.get('/login', function(req, res){
   res.sendfile('./public/login.html');
+});
+
+app.get('/register', function(req, res){
+  res.sendfile('./public/register.html');
 });
 
 app.get('/logout', function(req, res){
@@ -519,9 +598,38 @@ app.get('/logout', function(req, res){
   });
 });
 
+app.post('/register', function(req, res){
+	if(req.body.uname == "") {
+		res.redirect('/error_uname');
+	}
+	if(req.body.email == "") {
+		res.redirect('/error_email');
+	}
+	if(req.body.password == "") {
+		res.redirect('/error_password');
+	}
+	Users.USERNAME = req.body.uname;
+	Users.EMAIL = req.body.email;
+	
+	pass.hash(req.body.password, function(err, salt, hash){
+		Users.SALT = salt;
+		Users.HASH = hash;
+		crypto.randomBytes(16, function(ex, buf) {  
+			Users.TOKIN = buf.toString('hex').toUpperCase();
+			UserRegister(Users.USERNAME, JSON.stringify(Users), function(temp) {
+				res.send(temp);
+			});
+		}); 
+	}); 
+});
+
 app.post('/login', function(req, res){
-//console.log(req);
-  authenticate(req.body.uname, req.body.password, function(err, user){
+  authenticate(req.body.uname, req.body.password, function(err, userinfo){
+	console.log("UserInfo:" + userinfo);
+	var str = JSON.stringify(userinfo);
+	console.log(str);
+	var user = JSON.parse(str);
+	console.log(user.param);
     if (user) {
       // Regenerate session when signing in
       // to prevent fixation
@@ -533,15 +641,21 @@ app.post('/login', function(req, res){
         req.session.success = 'Authenticated as ' + user.name
           + ' click to <a href="/logout">logout</a>. '
           + ' You may now access <a href="/panel">/panel</a>.';
+		console.log("Login success:" + user);
         res.redirect('/panel');
       });
     } else {
       req.session.error = 'Authentication failed, please check your '
-        + ' username and password.'
-        + ' (use "tj" and "foobar")';
+        + ' username and password.';
       res.redirect('back');
     }
   });
+});
+
+app.get("/user/delete/:user" , function(req, res) {
+	UserRegister(req.params.user, "", function(temp) {
+		res.send(temp);
+	});
 });
 
 app.get('/wechat',function(req,res){

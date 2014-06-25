@@ -9,6 +9,7 @@
   "dependencies": {
     "express": "3.x",
     "redis": "0.9.1",
-    "moment": "^2.6.0"
+    "moment": "^2.6.0",
+	  "oauth2-provider": "1.x"
   }
 }
