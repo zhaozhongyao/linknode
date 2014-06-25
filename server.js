@@ -5,7 +5,6 @@ var fs = require('fs');
 var xml2js = require('node-xml');
 var moment = require('moment');
 var stathat = require('stathat');
-var hash = require('./pass').hash;
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
@@ -517,7 +516,7 @@ function authenticate(name, pass, fn) {
 	UserQuery(name, function(temp) {
 		userinfo = JSON.parse(temp);
 		
-		console.log("Query Result:" + userinfo);
+		console.log("Query Result:" + userinfo.USERNAME);
 		console.log("userinfo.SALT:" + userinfo.SALT);
 		if (!userinfo) {
 			console.log("cannot find user");
