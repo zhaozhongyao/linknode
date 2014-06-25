@@ -515,12 +515,7 @@ function authenticate(name, pass, fn) {
 	};
 	if (!module.parent) console.log('authenticating %s:%s', name, pass);
 	UserQuery(name, function(temp) {
-		userinfo = temp;
-		var str = JSON.stringify(temp);
-		console.log("str:" + str);
-
-		var aaa = JSON.parse(str);
-		console.log("param:" + aaa.param);
+		userinfo = JSON.parse(temp);
 		
 		console.log("Query Result:" + userinfo);
 		console.log("userinfo.SALT:" + userinfo.SALT);
@@ -627,19 +622,19 @@ app.post('/login', function(req, res){
   authenticate(req.body.uname, req.body.password, function(err, userinfo){
 	console.log("UserInfo:" + userinfo);
 	var user = JSON.parse(userinfo);
-	console.log(user.param);
-    if (user) {
+	console.log(user.USERNAME);
+    if (user.USERNAME) {
       // Regenerate session when signing in
       // to prevent fixation
-      req.session.regenerate(function(){
+        req.session.regenerate(function(){
         // Store the user's primary key
         // in the session store to be retrieved,
         // or in this case the entire user object
-        req.session.user = user.name;
-        req.session.success = 'Authenticated as ' + user.name
+        req.session.user = user.USERNAME;
+        req.session.success = 'Authenticated as ' + user.USERNAME
           + ' click to <a href="/logout">logout</a>. '
           + ' You may now access <a href="/panel">/panel</a>.';
-		console.log("Login success:" + user.name);
+		console.log("Login success:" + user.USERNAME);
         res.redirect('/panel');
       });
     } else {
