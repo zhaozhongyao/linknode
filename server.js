@@ -522,7 +522,8 @@ function authenticate(name, pass, fn) {
 			console.log("cannot find user");
 			return fn(new Error('cannot find user'));
 		}
-		pass.hash(pass, userinfo.SALT, function(err, hash){
+		var password = require('pwd');
+		password.hash(pass, userinfo.SALT, function(err, hash){
 			if (err) {
 				return fn(err);
 			}
