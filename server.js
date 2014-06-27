@@ -648,7 +648,12 @@ app.post('/login', function(req, res){
 
 app.get("/user/delete/:user" , function(req, res) {
 	UserRegister(req.params.user, "", function(temp) {
-		res.send(temp);
+		if(temp == undefined || temp == null ||temp == "") {
+			res.send("User not found!");
+		}
+		else {
+			res.send(temp);
+		}
 	});
 });
 
