@@ -652,6 +652,12 @@ app.get("/user/delete/:user" , function(req, res) {
 	});
 });
 
+app.get("/user/:user" , function(req, res) {
+	UserQuery(req.params.user, function(temp)) {
+		res.send(temp);
+	});
+});
+
 app.get('/wechat',function(req,res){
 	validateToken(req, res);
 });
