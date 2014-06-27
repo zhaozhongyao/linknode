@@ -648,18 +648,19 @@ app.post('/login', function(req, res){
 
 app.get("/user/delete/:user" , function(req, res) {
 	UserRegister(req.params.user, "", function(temp) {
-		if(temp == undefined || temp == null ||temp == "") {
-			res.send("User not found!");
-		}
-		else {
-			res.send(temp);
-		}
+		res.send(temp);
 	});
 });
 
 app.get("/user/:user" , function(req, res) {
-	UserQuery(req.params.user, function(temp) {
-		res.send(temp);
+	UserQuery(req.params.user, function(temp)) {
+		if(temp == undefined || temp == null ||temp =="") {
+			res.send("User not found!");
+		}
+		else
+		{
+			res.send(temp);
+		}
 	});
 });
 
