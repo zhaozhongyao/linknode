@@ -243,9 +243,6 @@ function validateToken(req, res) {
         res.send("Bad Token!");
     }
 }
-function ProccessRequest(commands){
-	console.log(commands);
-}
 
 function processMessage(data, res){
 	var tempid="";
@@ -318,7 +315,6 @@ function processMessage(data, res){
 			}else if (MsgType=="event"){
 				msg="Your command："+EventKey;
 				Content = EventKey;
-				//ProccessRequest(EventKey);
 			}else if (MsgType=="image"){
 				msg="你发的图片是："+PicUrl;
 			}else {
