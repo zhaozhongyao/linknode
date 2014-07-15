@@ -8,8 +8,8 @@ var session = require('express-session');
 var net = require('net');
 var pass = require('pwd');
 var app = express();
-var httpport = process.env.PORT;
-var port = 16378;
+var httpport = 8080;
+var port = 30059;
 var guestId = 0;
 
 var data_obj = require('./redis.js');
