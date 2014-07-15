@@ -11,14 +11,12 @@ var session = require('express-session');
 var pass = require('pwd');
 
 var app = express();
-var httpport = 18080;
+var httpport = process.env.PORT;
 var net = require('net');
 var sockets = [];
 var port = 30059;
 var guestId = 0;
 
-var redis = require('redis'); 
-var db_port = 6379;
 
 var Users = {
 	"USERNAME"  : "",
@@ -29,158 +27,9 @@ var Users = {
 	"TOKIN"  : ""
 };
 
-function UserRegister(Username, JsonUser, callback) {
-	var client = redis.createClient(db_port);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	if (JsonUser == "") {
-		client.del(Username);
-		client.get(Username, function(err, result) {
-			if (err) {
-				console.log(err);
-			}
-			callback("User has been deleted!");    
-		});
-	} else {
-		client.get(Username, function(err, result) {
-			if (err) {
-				console.log(err);
-			}
-			if (result == null) {
-				client.set(Username, JsonUser);
-				client.get(Username, function(err, result) {
-					if (err) {
-						console.log(err);
-					}
-					console.log(result);
-					callback(result);    
-				});
-			} else {
-				callback("Username already exist!");  
-			}
-		});  
-	}
-}
+var data_obj = require('./redis.js');
 
-function UserQuery(Username, callback) {
-	var client = redis.createClient(db_port);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	console.log("Username" + Username);
-	client.get(Username, function(err, result) {
-		if (err) {
-			console.log(err);
-		}
-		console.log("UserQuery" + result);
-		callback(result);    
-	});
-}
 
-function bindRedis(FromUserName, deviceId , callback) {
-	var client = redis.createClient(db_port);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
- 
-	client.set(FromUserName, deviceId);
- 
-	client.get(FromUserName, function(err, result) {
-		if (err) {
-			console.log(err);
-		}
-		console.log("bindRedis " + FromUserName + " " + result);
-		callback(result);    
-	}); 
-}
- 
-function setRedis(devId, userId, slotId , slotState , callback) {
-	var client = redis.createClient(db_port);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	if(devId == null) {
-		client.get(userId, function(err, deviceId) {
-			if (err) {
-				console.log(err);
-			}
-			if (deviceId == null) {
-				console.log("NOTFOUND");
-				callback("NOTFOUND"); 
-			} else {
-				if(deviceId.length == 8) {
-					client.get(deviceId , function(err, result) {
-						if (err) {
-							console.log(err);
-						}
-						replacePos(result, slotId, slotState ,function(deviceState) {
-							client.set(deviceId, deviceState);
-							console.log('Device State Update [' + deviceId + ':(' + result + '->' + deviceState + ')]');
-							callback(deviceState); 
-						});
-					}); 
-				}
-			}
-		}); 
-	}
-	else {
-		if(devId.length == 8) {
-			client.get(devId , function(err, result) {
-				if (err) {
-					console.log(err);
-				}
-				replacePos(result, slotId, slotState ,function(deviceState) {
-					client.set(devId, deviceState);
-					console.log('Device State Update [' + devId + ':(' + result + '->' + deviceState + ')]');
-					callback(deviceState); 
-				});
-			}); 
-		}
-		else {
-			console.log("NOTFOUND");
-			callback("NOTFOUND"); 
-		}
-	}
- 
-}
- 
-function replacePos(strObj, pos, replacetext , callback) {
-	if (strObj == null ||strObj.length > 5) {
-		strObj = '00000'
-		if ((pos > 0) && (pos < 6)) {
-			var str = strObj.substr(0, pos-1) + replacetext + strObj.substring(pos, strObj.length);
-			callback(str);
-		}
-		else {
-			var err = strObj
-			callback(err);
-		}
-	}
-	else {
-		if ((pos > 0) && (pos < 6)) {
-			var str = strObj.substr(0, pos-1) + replacetext + strObj.substring(pos, strObj.length);
-			callback(str);
-		}
-		else {
-			var err = strObj
-			callback(err);
-		}
-	}
-}
- 
-function getRedis(key , callback) {
-	var client = redis.createClient(db_port);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	client.get(key, function(err, value) {
-		if (err) {
-			console.log(err);   
-		}
-		callback(value); 
-	});  
-}
 
 var server = net.createServer(function(socket) {
 	// Increment
@@ -324,16 +173,16 @@ function processMessage(data, res){
 			//broadcast('SYSTEM',"Command long:" + Content.length + '\n');
 			if(Content.indexOf("bind") != -1) {
 				if(Content.length == 13) {
-					bindRedis(FromUserName, Content.substr(5,8) , function(temp){
+					data_obj.bindRedis(FromUserName, Content.substr(5,8) , function(temp){
 						broadcast('SYSTEM',JSON.stringify(temp) + '\n');
 					});
 				}
 			} else if(Content.indexOf("打开台灯") != -1) {
-				setRedis(null, FromUserName, 5, 1, function(temp){
+				data_obj.setRedis(null, FromUserName, 5, 1, function(temp){
 					json_out.State = temp;
 					//console.log("temp.length " + temp.length );
 					if(temp.length == 5) {
-						getRedis(FromUserName , function(temp1){
+						data_obj.getRedis(FromUserName , function(temp1){
 							json_out.DeviceId = temp1;
 							broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 						});
@@ -343,73 +192,73 @@ function processMessage(data, res){
 					}
 				});
 			} else if(Content.indexOf("关闭台灯") != -1) {
-				setRedis(null, FromUserName, 5, 0, function(temp){
+				data_obj.setRedis(null, FromUserName, 5, 0, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
 				});
 			} else if(Content.indexOf("打开音箱") != -1) {
-				setRedis(null, FromUserName, 4, 1, function(temp){
+				data_obj.setRedis(null, FromUserName, 4, 1, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
 				});
 			} else if(Content.indexOf("关闭音箱") != -1) {
-				setRedis(null, FromUserName, 4, 0, function(temp){
+				data_obj.setRedis(null, FromUserName, 4, 0, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
 				});
 			} else if(Content.indexOf("打开苹果充电器") != -1) {
-				setRedis(null, FromUserName, 3, 1, function(temp){
+				data_obj.setRedis(null, FromUserName, 3, 1, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
 				});
 			} else if(Content.indexOf("关闭苹果充电器") != -1) {
-				setRedis(null, FromUserName, 3, 0, function(temp){
+				data_obj.setRedis(null, FromUserName, 3, 0, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
 				});
 			} else if(Content.indexOf("打开安卓充电器") != -1) {
-				setRedis(null, FromUserName, 2, 1, function(temp){
+				data_obj.setRedis(null, FromUserName, 2, 1, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
 				});
 			} else if(Content.indexOf("关闭安卓充电器") != -1) {
-				setRedis(null, FromUserName, 2, 0, function(temp){
+				data_obj.setRedis(null, FromUserName, 2, 0, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
 				});
 			} else if(Content.indexOf("打开树莓派") != -1) {
-				setRedis(null, FromUserName, 1, 1, function(temp){
+				data_obj.setRedis(null, FromUserName, 1, 1, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
 				});
 			} else if(Content.indexOf("关闭树莓派") != -1) {
-				setRedis(null, FromUserName, 1, 0, function(temp){
+				data_obj.setRedis(null, FromUserName, 1, 0, function(temp){
 					json_out.State = temp;
-					getRedis(FromUserName , function(temp1){
+					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
 						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 					});
@@ -426,22 +275,21 @@ function processMessage(data, res){
 }
 
 function ToXML(FromUserName,ToUserName,MsgType,Msg,FuncFlag) {
-  var msgxml = "" +
-      "<xml>" +
-      "<ToUserName>" + FromUserName + "</ToUserName>" +
-      "<FromUserName>" + ToUserName + "</FromUserName>" +
-      "<CreateTime>" + Date.now()/1000 + "</CreateTime>" +
-	  "<FuncFlag>0</FuncFlag>" +
-      "<MsgType>" + MsgType + "</MsgType>";
-
- // switch(MsgType) {
- //   case 'text' : 
-      msgxml += "" +
-        "<Content>" + Msg + "</Content>" +
-        "</xml>";
-        //console.log(msgxml);
-      return msgxml;
- // }
+    var msgxml = "" +
+    "<xml>" +
+    "<ToUserName>" + FromUserName + "</ToUserName>" +
+    "<FromUserName>" + ToUserName + "</FromUserName>" +
+    "<CreateTime>" + Date.now()/1000 + "</CreateTime>" +
+    "<FuncFlag>0</FuncFlag>" +
+    "<MsgType>" + MsgType + "</MsgType>";
+    
+    // switch(MsgType) {
+    //   case 'text' : 
+    msgxml += "" +
+    "<Content>" + Msg + "</Content>" +
+    "</xml>";
+    return msgxml;
+    // }
 }
 
 function handler(req, res) {
@@ -459,14 +307,14 @@ function handler(req, res) {
     xmldata = processMessage(xml, res);
   });
   
-  return xmldata
+  return xmldata;
 }
 
 // Broadcast to others, excluding the sender
 function broadcast(from, message) {
 	// If there are no sockets, then don't broadcast any messages
 	if (sockets.length === 0) {
-		console.log('nobody connected.')
+		console.log('nobody connected.');
 		return;
 	}
 	// If there are clients remaining then broadcast message
@@ -475,12 +323,12 @@ function broadcast(from, message) {
 		if(socket.nickname === from) return;
 		socket.write(message);
 	});
-};
+}
  
 // Remove disconnected client from sockets array
 function removeSocket(socket) {
 	sockets.splice(sockets.indexOf(socket), 1);
-};
+}
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views'); 
 app.use(express.static(__dirname + '/public'));
@@ -509,7 +357,7 @@ function authenticate(name, pass, fn) {
 		"TOKIN"  : ""
 	};
 	if (!module.parent) console.log('authenticating %s:%s', name, pass);
-	UserQuery(name, function(temp) {
+	data_obj.UserQuery(name, function(temp) {
 		userinfo = JSON.parse(temp);
 		
 		console.log("Query Result:" + userinfo.USERNAME);
@@ -546,7 +394,7 @@ function authenticate(name, pass, fn) {
 
 function restrict(req, res, next) {
   if (req.session.user) {
-  	console.log("User: " + req.session.user);
+    console.log("User: " + req.session.user);
     next();
   } else {
     req.session.error = 'Access denied!';
@@ -608,7 +456,7 @@ app.post('/register', function(req, res){
 		Users.HASH = hash;
 		crypto.randomBytes(16, function(ex, buf) {  
 			Users.TOKIN = buf.toString('hex').toUpperCase();
-			UserRegister(Users.USERNAME, JSON.stringify(Users), function(temp) {
+			data_obj.UserRegister(Users.USERNAME, JSON.stringify(Users), function(temp) {
 				res.send(temp);
 			});
 		}); 
@@ -643,13 +491,13 @@ app.post('/login', function(req, res){
 });
 
 app.get("/user/delete/:user" , function(req, res) {
-	UserRegister(req.params.user, "", function(temp) {
+	data_obj.UserRegister(req.params.user, "", function(temp) {
 		res.send(temp);
 	});
 });
 
 app.get("/user/:user" , function(req, res) {
-	UserQuery(req.params.user, function(temp) {
+	data_obj.UserQuery(req.params.user, function(temp) {
 		if(temp == undefined || temp == null ||temp =="") {
 			res.send("User not found!");
 		}
@@ -673,7 +521,7 @@ app.get('/qrcode', function(req, res){
 });
 
 app.get("/device/:id/:slot?/:operation?" , function(req, res){
-	var temp = 'error'
+	var temp = 'error';
 	var json_out = {
 		"DeviceId"  	: "00000000",
 		"IsSuccess" 	: "Success",
@@ -684,14 +532,14 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res){
 	json_out.DeviceId = req.params.id;
 	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
 	if (req.params.operation != undefined) {
-		setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
+		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
 			json_out.State = temp;
 			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
 		});
 	}
 	else {
-		getRedis(req.params.id , function(temp){			
+		data_obj.getRedis(req.params.id , function(temp){			
 			json_out.State = temp;			
 			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
@@ -700,7 +548,7 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res){
 });
 
 app.get("/api/device/:id/:slot?/:operation?" , function(req, res){
-	var temp = 'error'
+	var temp = 'error';
 	var json_out = {
 		"DeviceId"  	: "00000000",
 		"IsSuccess" 	: "Success",
@@ -711,14 +559,14 @@ app.get("/api/device/:id/:slot?/:operation?" , function(req, res){
 	json_out.DeviceId = req.params.id;
 	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
 	if (req.params.operation != undefined) {
-		setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
+		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
 			json_out.State = temp;
 			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
 		});
 	}
 	else {
-		getRedis(req.params.id , function(temp){			
+		data_obj.getRedis(req.params.id , function(temp){			
 			json_out.State = temp;			
 			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
