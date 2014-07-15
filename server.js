@@ -1,22 +1,21 @@
 var express = require('express');
 var crypto = require('crypto');
-var http = require('http');
-var fs = require('fs');
 var xml2js = require('node-xml');
 var moment = require('moment');
 var stathat = require('stathat');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
-var pass = require('pwd');
 
+var net = require('net');
+var pass = require('pwd');
 var app = express();
 var httpport = process.env.PORT;
-var net = require('net');
 var sockets = [];
 var port = 30059;
 var guestId = 0;
 
+var data_obj = require('./redis.js');
 
 var Users = {
 	"USERNAME"  : "",
@@ -26,10 +25,6 @@ var Users = {
 	"DEVICEID"  : "",
 	"TOKIN"  : ""
 };
-
-var data_obj = require('./redis.js');
-
-
 
 var server = net.createServer(function(socket) {
 	// Increment
@@ -46,7 +41,7 @@ var server = net.createServer(function(socket) {
 	//broadcast(clientName, clientName + ' joined this chat.\n');
 	// When client sends data
 	socket.on('data', function(data) {
-		var message = clientName + '> ' + data.toString();
+		//var message = clientName + '> ' + data.toString();
 		//broadcast(clientName, message);
 		//process.stdout.write(message);
 	});
@@ -94,7 +89,7 @@ function validateToken(req, res) {
 }
 
 function processMessage(data, res){
-	var tempid="";
+	//var tempid="";
 	var xmldata="";
 	var ToUserName="";
 	var FromUserName="";
@@ -105,17 +100,17 @@ function processMessage(data, res){
 	var Location_X="";
 	var Location_Y="";
 	var Scale=1;
-	var Label="";
-	var tempstate = "";
+	//var Label="";
+	//var tempstate = "";
 	var PicUrl="";
 	var FuncFlag="";
 	var tempName="";
 		var json_out = {
-		"DeviceId"  	: "00000000",
-		"IsSuccess" 	: "Success",
-		"NSlots"    	: "5",
-		"State"     	: "00000",
-		"ServerTime"	: "2014-5-19 14:47:56"
+		"DeviceId"  : "00000000",
+		"IsSuccess" : "Success",
+		"NSlots"    : "5",
+		"State"     : "00000",
+		"ServerTime": "2014-5-19 14:47:56"
 	};
 
 	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
@@ -129,11 +124,11 @@ function processMessage(data, res){
 			if(tempName=="CreateTime"){
 				CreateTime=chars;
 			}else if(tempName=="Location_X"){
-				Location_X=cdata;
+				Location_X=chars;
 			}else if(tempName=="Location_Y"){
-				Location_Y=cdata;
+				Location_Y=chars;
 			}else if(tempName=="Scale"){
-				Scale=cdata;
+				Scale=chars;
 			}			
 		});
 		cb.onCdata(function(cdata){
@@ -296,7 +291,7 @@ function handler(req, res) {
   //RES = res;
   var xml = '';
   var xmldata = '';
-  var self = this;
+  //var self = this;
 
   req.setEncoding('utf8');
   req.on('data', function (chunk) {
@@ -329,8 +324,10 @@ function broadcast(from, message) {
 function removeSocket(socket) {
 	sockets.splice(sockets.indexOf(socket), 1);
 }
-app.set('view engine', 'ejs');
-app.set('views', __dirname + '/views'); 
+
+
+//app.set('view engine', 'ejs');
+//app.set('views', __dirname + '/views'); 
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser());
 app.use(cookieParser('shhhh, very secret'));
@@ -439,13 +436,13 @@ app.get('/logout', function(req, res){
 });
 
 app.post('/register', function(req, res){
-	if(req.body.uname == "") {
+	if(req.body.uname === "") {
 		res.redirect('/error_uname');
 	}
-	if(req.body.email == "") {
+	if(req.body.email === "") {
 		res.redirect('/error_email');
 	}
-	if(req.body.password == "") {
+	if(req.body.password === "") {
 		res.redirect('/error_password');
 	}
 	Users.USERNAME = req.body.uname;
@@ -498,7 +495,7 @@ app.get("/user/delete/:user" , function(req, res) {
 
 app.get("/user/:user" , function(req, res) {
 	data_obj.UserQuery(req.params.user, function(temp) {
-		if(temp == undefined || temp == null ||temp =="") {
+		if(temp === undefined || temp === null ||temp ==="") {
 			res.send("User not found!");
 		}
 		else
@@ -513,7 +510,7 @@ app.get('/wechat',function(req,res){
 });
 
 app.post('/wechat',function(req,res){
-	xmldata = handler(req,res);
+	var xmldata = handler(req,res);
 });
 
 app.get('/qrcode', function(req, res){
@@ -521,17 +518,17 @@ app.get('/qrcode', function(req, res){
 });
 
 app.get("/device/:id/:slot?/:operation?" , function(req, res){
-	var temp = 'error';
+	//var temp = 'error';
 	var json_out = {
-		"DeviceId"  	: "00000000",
-		"IsSuccess" 	: "Success",
-		"NSlots"    	: "5",
-		"State"     	: "00000",
-		"ServerTime"	: "2014-5-19 14:47:56"
+		"DeviceId"  : "00000000",
+		"IsSuccess" : "Success",
+		"NSlots"    : "5",
+		"State"     : "00000",
+		"ServerTime": "2014-5-19 14:47:56"
 	};
 	json_out.DeviceId = req.params.id;
 	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
-	if (req.params.operation != undefined) {
+	if (req.params.operation !== undefined) {
 		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
 			json_out.State = temp;
 			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
@@ -548,17 +545,17 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res){
 });
 
 app.get("/api/device/:id/:slot?/:operation?" , function(req, res){
-	var temp = 'error';
+	//var temp = 'error';
 	var json_out = {
-		"DeviceId"  	: "00000000",
-		"IsSuccess" 	: "Success",
-		"NSlots"    	: "5",
-		"State"     	: "00000",
-		"ServerTime"	: "2014-5-19 14:47:56"
+		"DeviceId"  : "00000000",
+		"IsSuccess" : "Success",
+		"NSlots"    : "5",
+		"State"     : "00000",
+		"ServerTime": "2014-5-19 14:47:56"
 	};
 	json_out.DeviceId = req.params.id;
 	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
-	if (req.params.operation != undefined) {
+	if (req.params.operation !== undefined) {
 		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
 			json_out.State = temp;
 			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
@@ -576,4 +573,5 @@ app.get("/api/device/:id/:slot?/:operation?" , function(req, res){
 
 var server = app.listen(httpport, function() {
     console.log('HTTP listening on port :%d', server.address().port);
+    console.log('Dir name :%s', __dirname);
 });
