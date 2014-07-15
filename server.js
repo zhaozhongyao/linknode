@@ -1,21 +1,20 @@
 var express = require('express');
 var crypto = require('crypto');
-var xml2js = require('node-xml');
+
 var moment = require('moment');
-var stathat = require('stathat');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
-
 var net = require('net');
 var pass = require('pwd');
 var app = express();
 var httpport = process.env.PORT;
-var sockets = [];
-var port = 30059;
+var port = 16378;
 var guestId = 0;
 
 var data_obj = require('./redis.js');
+var socket_obj = require('./socket.js');
+var wechat_obj = require('./wechat.js');
 
 var Users = {
 	"USERNAME"  : "",
@@ -31,8 +30,7 @@ var server = net.createServer(function(socket) {
 	guestId++;
 	socket.nickname = "Client_" + guestId;
 	var clientName = socket.nickname;
-	stathat.trackEZCount("54anson@gmail.com", "TcpConnects", 1, function(status, json) {});
-	sockets.push(socket);
+	socket_obj.pushsocket(socket);
 	// Log it to the server output
 	console.log(clientName + ' connected.');
 	// Welcome user to the socket
@@ -49,7 +47,7 @@ var server = net.createServer(function(socket) {
 	socket.on('end', function() {
 		var message = clientName + ' disconnected\n';
 		console.log(message);
-		removeSocket(socket);
+		socket_obj.removeSocket(socket);
 		//broadcast(clientName, message);
 	});
  
@@ -58,276 +56,19 @@ var server = net.createServer(function(socket) {
 		console.log('Socket got problems: ', error.message);
 	});
 });
-function sha1(str) {
-    var md5sum = crypto.createHash('sha1');
-    md5sum.update(str);
-    str = md5sum.digest('hex');
-    return str;
-}
 
-function validateToken(req, res) {
-    var query = req.query;
-    var signature = query.signature;
-    var echostr = query.echostr;
-    var timestamp = query['timestamp'];
-    var nonce = query.nonce;
-    var oriArray = new Array();
-    oriArray[0] = nonce;
-    oriArray[1] = timestamp;
-    oriArray[2] = "414cf5d02e";// your token
-    oriArray.sort();
-    var original = oriArray[0]+oriArray[1]+oriArray[2];
-    console.log("Original Str:"+original);
-    console.log("signature:"+signature);
-    var scyptoString = sha1(original);
-    if (signature == scyptoString) {
-        res.send(echostr);
-    }
-    else {
-        res.send("Bad Token!");
-    }
-}
+// Listening for any problems with the server
+server.on('error', function(error) {
+	console.log("So we got problems!", error.message);
+});
 
-function processMessage(data, res){
-	//var tempid="";
-	var xmldata="";
-	var ToUserName="";
-	var FromUserName="";
-	var CreateTime="";
-	var MsgType="";
-	var Content="";
-	var EventKey="";
-	var Location_X="";
-	var Location_Y="";
-	var Scale=1;
-	//var Label="";
-	//var tempstate = "";
-	var PicUrl="";
-	var FuncFlag="";
-	var tempName="";
-		var json_out = {
-		"DeviceId"  : "00000000",
-		"IsSuccess" : "Success",
-		"NSlots"    : "5",
-		"State"     : "00000",
-		"ServerTime": "2014-5-19 14:47:56"
-	};
-
-	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
-	
-	var parse=new xml2js.SaxParser(function(cb){
-		cb.onStartElementNS(function(elem,attra,prefix,uri,namespaces){
-			tempName=elem;
-		});
-		cb.onCharacters(function(chars){
-			chars=chars.replace(/(^\s*)|(\s*$)/g, "");
-			if(tempName=="CreateTime"){
-				CreateTime=chars;
-			}else if(tempName=="Location_X"){
-				Location_X=chars;
-			}else if(tempName=="Location_Y"){
-				Location_Y=chars;
-			}else if(tempName=="Scale"){
-				Scale=chars;
-			}			
-		});
-		cb.onCdata(function(cdata){
-			if(tempName=="ToUserName"){
-				ToUserName=cdata;
-			}else if(tempName=="FromUserName"){
-				FromUserName=cdata;
-			}else if(tempName=="MsgType"){
-				MsgType=cdata;
-			}else if(tempName=="Content"){
-				Content=cdata;
-			}else if(tempName=="PicUrl"){
-				PicUrl=cdata;
-			}else if(tempName=="EventKey"){
-				EventKey=cdata;
-			}
-			//console.log("cdata:"+cdata);
-		});
-		cb.onEndElementNS(function(elem,prefix,uri){
-			tempName="";
-		});
-		cb.onEndDocument(function(){
-			stathat.trackEZCount("54anson@gmail.com", "ClientRequests", 1, function(status, json) {});
-			tempName="";
-			var msg="";
-			if(MsgType=="text"){
-				msg="你说的是："+Content;
-			}else if (MsgType=="event"){
-				msg="Your command："+EventKey;
-				Content = EventKey;
-			}else if (MsgType=="image"){
-				msg="你发的图片是："+PicUrl;
-			}else {
-				//console.log(MsgType);
-			}
-			//xmldata = ToXML(FromUserName,ToUserName,'text',msg,FuncFlag);
-			//broadcast('SYSTEM',"Command long:" + Content.length + '\n');
-			if(Content.indexOf("bind") != -1) {
-				if(Content.length == 13) {
-					data_obj.bindRedis(FromUserName, Content.substr(5,8) , function(temp){
-						broadcast('SYSTEM',JSON.stringify(temp) + '\n');
-					});
-				}
-			} else if(Content.indexOf("打开台灯") != -1) {
-				data_obj.setRedis(null, FromUserName, 5, 1, function(temp){
-					json_out.State = temp;
-					//console.log("temp.length " + temp.length );
-					if(temp.length == 5) {
-						data_obj.getRedis(FromUserName , function(temp1){
-							json_out.DeviceId = temp1;
-							broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-						});
-					} else {
-						msg = "您的账号未绑定任何设备！";
-						console.log("NOTBINDYET!");
-					}
-				});
-			} else if(Content.indexOf("关闭台灯") != -1) {
-				data_obj.setRedis(null, FromUserName, 5, 0, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else if(Content.indexOf("打开音箱") != -1) {
-				data_obj.setRedis(null, FromUserName, 4, 1, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else if(Content.indexOf("关闭音箱") != -1) {
-				data_obj.setRedis(null, FromUserName, 4, 0, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else if(Content.indexOf("打开苹果充电器") != -1) {
-				data_obj.setRedis(null, FromUserName, 3, 1, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else if(Content.indexOf("关闭苹果充电器") != -1) {
-				data_obj.setRedis(null, FromUserName, 3, 0, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else if(Content.indexOf("打开安卓充电器") != -1) {
-				data_obj.setRedis(null, FromUserName, 2, 1, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else if(Content.indexOf("关闭安卓充电器") != -1) {
-				data_obj.setRedis(null, FromUserName, 2, 0, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else if(Content.indexOf("打开树莓派") != -1) {
-				data_obj.setRedis(null, FromUserName, 1, 1, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else if(Content.indexOf("关闭树莓派") != -1) {
-				data_obj.setRedis(null, FromUserName, 1, 0, function(temp){
-					json_out.State = temp;
-					data_obj.getRedis(FromUserName , function(temp1){
-						json_out.DeviceId = temp1;
-						broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-					});
-				});
-			} else {
-				broadcast('SYSTEM',"Command long:" + Content.length + '\n');
-			}
-			xmldata = ToXML(FromUserName,ToUserName,'text',msg,FuncFlag);
-			res.send(xmldata);
-		});
-	});
-	parse.parseString(data);
-	return xmldata;
-}
-
-function ToXML(FromUserName,ToUserName,MsgType,Msg,FuncFlag) {
-    var msgxml = "" +
-    "<xml>" +
-    "<ToUserName>" + FromUserName + "</ToUserName>" +
-    "<FromUserName>" + ToUserName + "</FromUserName>" +
-    "<CreateTime>" + Date.now()/1000 + "</CreateTime>" +
-    "<FuncFlag>0</FuncFlag>" +
-    "<MsgType>" + MsgType + "</MsgType>";
-    
-    // switch(MsgType) {
-    //   case 'text' : 
-    msgxml += "" +
-    "<Content>" + Msg + "</Content>" +
-    "</xml>";
-    return msgxml;
-    // }
-}
-
-function handler(req, res) {
-  //RES = res;
-  var xml = '';
-  var xmldata = '';
-  //var self = this;
-
-  req.setEncoding('utf8');
-  req.on('data', function (chunk) {
-    xml += chunk;
-  });
-
-  req.on('end', function() {
-    xmldata = processMessage(xml, res);
-  });
-  
-  return xmldata;
-}
-
-// Broadcast to others, excluding the sender
-function broadcast(from, message) {
-	// If there are no sockets, then don't broadcast any messages
-	if (sockets.length === 0) {
-		console.log('nobody connected.');
-		return;
-	}
-	// If there are clients remaining then broadcast message
-	sockets.forEach(function(socket, index, array){
-		// Dont send any messages to the sender
-		if(socket.nickname === from) return;
-		socket.write(message);
-	});
-}
- 
-// Remove disconnected client from sockets array
-function removeSocket(socket) {
-	sockets.splice(sockets.indexOf(socket), 1);
-}
+// Listen for a port to telnet to
+// then in the terminal just run 'telnet localhost [port]'
+server.listen(port, function() {
+	console.log("TCP  listening on port :" + port);
+});
 
 
-//app.set('view engine', 'ejs');
-//app.set('views', __dirname + '/views'); 
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser());
 app.use(cookieParser('shhhh, very secret'));
@@ -372,21 +113,9 @@ function authenticate(name, pass, fn) {
 				console.log("User authenticate success:" + Users.USERNAME);
 				return fn(null, temp); // yay
 			}
-			fn(new Error('invalid password'));
+			return fn(new Error('invalid password'));
 		});
 	});
-	// query the db for the given username
-
-  // apply the same algorithm to the POSTed password, applying
-  // the hash against the pass / salt, if there is a match we
-  // found the user
- // hash(pass, user.salt, function(err, hash){
- //   if (err) return fn(err);
- //   if (hash == user.hash) return fn(null, user);
- //   fn(new Error('invalid password'));
- // });
-  
-
 }
 
 function restrict(req, res, next) {
@@ -398,17 +127,6 @@ function restrict(req, res, next) {
     res.redirect('/login');
   }
 }
-
-// Listening for any problems with the server
-server.on('error', function(error) {
-	console.log("So we got problems!", error.message);
-});
-
-// Listen for a port to telnet to
-// then in the terminal just run 'telnet localhost [port]'
-server.listen(port, function() {
-	console.log("TCP  listening on port :" + port);
-});
 
 app.use(function(err, req, res, next){
   console.error(err.stack);
@@ -462,27 +180,33 @@ app.post('/register', function(req, res){
 
 app.post('/login', function(req, res){
   authenticate(req.body.uname, req.body.password, function(err, userinfo){
-	console.log("UserInfo:" + userinfo);
-	var user = JSON.parse(userinfo);
-	console.log(user.USERNAME);
-    if (user.USERNAME) {
-      // Regenerate session when signing in
-      // to prevent fixation
-        req.session.regenerate(function(){
-        // Store the user's primary key
-        // in the session store to be retrieved,
-        // or in this case the entire user object
-        req.session.user = user.USERNAME;
-        req.session.success = 'Authenticated as ' + user.USERNAME
-          + ' click to <a href="/logout">logout</a>. '
-          + ' You may now access <a href="/panel">/panel</a>.';
-		console.log("Login success:" + user.USERNAME);
-        res.redirect('/panel');
-      });
+	if(err === null) {
+        var user = JSON.parse(userinfo);
+        if (user.USERNAME) {
+          // Regenerate session when signing in
+          // to prevent fixation
+            req.session.regenerate(function(){
+            // Store the user's primary key
+            // in the session store to be retrieved,
+            // or in this case the entire user object
+            req.session.user = user.USERNAME;
+            req.session.success = 'Authenticated as ' + user.USERNAME
+              + ' click to <a href="/logout">logout</a>. '
+              + ' You may now access <a href="/panel">/panel</a>.';
+            console.log("Login success:" + user.USERNAME);
+            res.redirect('/panel');
+          });
+        } else {
+          req.session.error = 'Authentication failed, please check your '
+            + ' username and password.';
+          res.redirect('back');
+        }
     } else {
-      req.session.error = 'Authentication failed, please check your '
-        + ' username and password.';
-      res.redirect('back');
+        console.log("ErrMsg:" + err);
+        console.log("UserInfo:" + userinfo);
+        req.session.error = 'Authentication failed, please check your '
+            + ' username and password.';
+        res.redirect('/login');
     }
   });
 });
@@ -506,11 +230,11 @@ app.get("/user/:user" , function(req, res) {
 });
 
 app.get('/wechat',function(req,res){
-	validateToken(req, res);
+	wechat_obj.validateToken(req, res);
 });
 
 app.post('/wechat',function(req,res){
-	var xmldata = handler(req,res);
+	var xmldata = wechat_obj.handler(req,res);
 });
 
 app.get('/qrcode', function(req, res){
@@ -531,14 +255,14 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res){
 	if (req.params.operation !== undefined) {
 		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
 			json_out.State = temp;
-			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
 		});
 	}
 	else {
 		data_obj.getRedis(req.params.id , function(temp){			
 			json_out.State = temp;			
-			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
 		});
 	}
@@ -558,14 +282,14 @@ app.get("/api/device/:id/:slot?/:operation?" , function(req, res){
 	if (req.params.operation !== undefined) {
 		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
 			json_out.State = temp;
-			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
 		});
 	}
 	else {
 		data_obj.getRedis(req.params.id , function(temp){			
 			json_out.State = temp;			
-			broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
 		});
 	}
@@ -573,5 +297,5 @@ app.get("/api/device/:id/:slot?/:operation?" , function(req, res){
 
 var server = app.listen(httpport, function() {
     console.log('HTTP listening on port :%d', server.address().port);
-    console.log('Dir name :%s', __dirname);
+    console.log('Dir :%s', __dirname);
 });
