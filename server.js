@@ -255,6 +255,30 @@ app.post('/wechat',function(req, res){
 	wechat_obj.handler(req, res);
 });
 
+app.get("/bind/:id", restrict, function(req, res){
+	var userinfo = Users;
+	if (req.params.id !== undefined && req.session.user !== undefined) {
+        data_obj.UserQuery(req.session.user, function(temp) {
+            if (temp === null) {
+                console.log("cannot find user");
+                res.send("cannot find user");
+            } else {
+                userinfo = JSON.parse(temp);
+                userinfo.DEVICEID = req.params.id;
+                console.log("Query Result:" + userinfo.USERNAME);
+                console.log("\nUserinfo.DEVICEID:" + userinfo.DEVICEID);
+                
+                data_obj.UserUpdate(userinfo.USERNAME, JSON.stringify(userinfo), function(temp) {
+                    res.send(temp);
+                });
+            }
+        });
+	}
+	else {
+		res.send("UserName / DeviceId error or not login!");
+	}
+});
+
 app.get("/device/:id/:slot?/:operation?" , function(req, res){
 	var json_out = DeviceState;
 	json_out.DeviceId = req.params.id;
@@ -265,6 +289,40 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res){
 			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
 		});
+	}
+	else {
+		data_obj.getRedis(req.params.id , function(temp){			
+			json_out.State = temp;			
+			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+			res.send(JSON.stringify(json_out));
+		});
+	}
+});
+
+app.get("/api/device/:id/:slot?/:operation?", restrict, function(req, res){
+	var json_out = DeviceState;
+    var userinfo = Users;
+	json_out.DeviceId = req.params.id;
+	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
+	if (req.params.operation !== undefined) {
+        data_obj.UserQuery(req.session.user, function(temp) {
+            if (temp === null) {
+                console.log("cannot find user");
+            } else {
+                userinfo = JSON.parse(temp);
+                console.log("Query Result:" + userinfo.USERNAME);
+                console.log("userinfo.DEVICEID:" + userinfo.DEVICEID);
+                if(req.params.id == userinfo.DEVICEID) {
+                    data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp) {
+                        json_out.State = temp;
+                        socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+                        res.send(JSON.stringify(json_out));
+                    });                    
+                } else {
+                    res.send("This device is not belongs to you.");
+                }
+            }
+        });
 	}
 	else {
 		data_obj.getRedis(req.params.id , function(temp){			

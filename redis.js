@@ -61,12 +61,36 @@ exports.UserRegister = function(Username, JsonUser, callback) {
 	}
 };
 
+exports.UserUpdate = function(Username, JsonUser, callback) {
+	var client = redis.createClient(db_port,process.env.IP);
+	client.on("error", function (err) {
+		console.log("Error " + err);
+	});
+	client.get(Username, function(err, result) {
+		if (err) {
+			console.log(err);
+		}
+		if (result !== null) {
+			client.set(Username, JsonUser);
+			client.get(Username, function(err, result) {
+				if (err) {
+					console.log(err);
+				}
+				console.log(result);
+				callback(result);    
+			});
+		} else {
+			callback("Username not exist!");  
+		}
+	});  
+};
+
 exports.UserQuery = function(Username, callback) {
 	var client = redis.createClient(db_port,process.env.IP);
 	client.on("error", function (err) {
 		console.log("Error " + err);
 	});
-	console.log("Username" + Username);
+	console.log("Username: " + Username);
 	client.get(Username, function(err, result) {
 		if (err) {
 			console.log(err);
