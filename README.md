@@ -17,16 +17,27 @@ Happy coding!
 
 Http Post:
     /wechat
+    
     /register
+    
     /login
 
 Http Get:
     /panel
+    
     /login
+    
     /logout
+    
     /register
+    
     /user/delete/:user
+    
     /user/:user
+    
     /wechat
+    
     /bind/:id
+    
     /api/device/:id/:slot?/:operation?
+    

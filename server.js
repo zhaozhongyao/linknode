@@ -246,16 +246,16 @@ app.get("/user/:user" , function(req, res) {
 	});
 });
 
-app.get('/wechat',function(req, res){
+app.get('/wechat',function(req, res) {
     wechat_obj.validateToken(req, res);
 });
 
-app.post('/wechat',function(req, res){
+app.post('/wechat',function(req, res) {
 	//var xmldata = wechat_obj.handler(req,res);
 	wechat_obj.handler(req, res);
 });
 
-app.get("/bind/:id", restrict, function(req, res){
+app.get("/bind/:id", restrict, function(req, res) {
 	var userinfo = Users;
 	if (req.params.id !== undefined && req.session.user !== undefined) {
         data_obj.UserQuery(req.session.user, function(temp) {
@@ -279,19 +279,19 @@ app.get("/bind/:id", restrict, function(req, res){
 	}
 });
 
-app.get("/device/:id/:slot?/:operation?" , function(req, res){
+app.get("/device/:id/:slot?/:operation?" , function(req, res) {
 	var json_out = DeviceState;
 	json_out.DeviceId = req.params.id;
 	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
 	if (req.params.operation !== undefined) {
-		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp){
+		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp) {
 			json_out.State = temp;
 			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
 		});
 	}
 	else {
-		data_obj.getRedis(req.params.id , function(temp){			
+		data_obj.getRedis(req.params.id , function(temp) {			
 			json_out.State = temp;			
 			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
@@ -299,7 +299,8 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res){
 	}
 });
 
-app.get("/api/device/:id/:slot?/:operation?", restrict, function(req, res){
+
+app.get("/api/device/:id/:slot?/:operation?", restrict, function(req, res) {
 	var json_out = DeviceState;
     var userinfo = Users;
 	json_out.DeviceId = req.params.id;
@@ -325,7 +326,7 @@ app.get("/api/device/:id/:slot?/:operation?", restrict, function(req, res){
         });
 	}
 	else {
-		data_obj.getRedis(req.params.id , function(temp){			
+		data_obj.getRedis(req.params.id , function(temp) {			
 			json_out.State = temp;			
 			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 			res.send(JSON.stringify(json_out));
