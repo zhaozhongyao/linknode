@@ -106,8 +106,8 @@ function authenticate(name, pass, fn) {
 			return fn(new Error('cannot find user'));
 		} else {
             userinfo = JSON.parse(temp);
-            console.log("Query Result:" + userinfo.USERNAME);
-            console.log("userinfo.SALT:" + userinfo.SALT);
+            //console.log("Query Result:" + userinfo.USERNAME);
+            //console.log("userinfo.SALT:" + userinfo.SALT);
             var password = require('pwd');
             password.hash(pass, userinfo.SALT, function(err, hash) {
                 if (err) {
@@ -125,7 +125,7 @@ function authenticate(name, pass, fn) {
 
 function restrict(req, res, next) {
     if (req.session.user) {
-        console.log("User: " + req.session.user);
+        //console.log("User: " + req.session.user);
         next();
     } else {
         req.session.error = 'Access denied!';
@@ -185,8 +185,8 @@ app.post('/register', function(req, res) {
 });
 
 app.post('/login', function(req, res) {
-    console.log(req.body.uname);
-    console.log(req.body.password);
+    //console.log(req.body.uname);
+    //console.log(req.body.password);
     if(req.body.uname === null || req.body.password === null)
     {
         console.log("Error ,username or password empty!");
@@ -209,7 +209,7 @@ app.post('/login', function(req, res) {
                 req.session.success = 'Authenticated as ' + user.USERNAME
                   + ' click to <a href="/logout">logout</a>. '
                   + ' You may now access <a href="/panel">/panel</a>.';
-                console.log("Login success:" + user.USERNAME);
+                //console.log("Login success:" + user.USERNAME);
                 res.redirect('/panel');
               });
             } else {
@@ -218,8 +218,8 @@ app.post('/login', function(req, res) {
               res.redirect('back');
             }
         } else {
-            console.log("ErrMsg:" + err);
-            console.log("UserInfo:" + userinfo);
+            //console.log("ErrMsg:" + err);
+            //console.log("UserInfo:" + userinfo);
             req.session.error = 'Authentication failed, please check your '
                 + ' username and password.';
             res.redirect('/login');
@@ -265,8 +265,8 @@ app.get("/bind/:id", restrict, function(req, res) {
             } else {
                 userinfo = JSON.parse(temp);
                 userinfo.DEVICEID = req.params.id;
-                console.log("Query Result:" + userinfo.USERNAME);
-                console.log("\nUserinfo.DEVICEID:" + userinfo.DEVICEID);
+                //console.log("Query Result:" + userinfo.USERNAME);
+                //console.log("\nUserinfo.DEVICEID:" + userinfo.DEVICEID);
                 
                 data_obj.UserUpdate(userinfo.USERNAME, JSON.stringify(userinfo), function(temp) {
                     res.send(temp);
@@ -300,10 +300,9 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res) {
 });
 
 
-app.get("/api/device/:id/:slot?/:operation?", restrict, function(req, res) {
+app.get("/api/device/:slot?/:operation?", restrict, function(req, res) {
 	var json_out = DeviceState;
     var userinfo = Users;
-	json_out.DeviceId = req.params.id;
 	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
 	if (req.params.operation !== undefined) {
         data_obj.UserQuery(req.session.user, function(temp) {
@@ -311,26 +310,40 @@ app.get("/api/device/:id/:slot?/:operation?", restrict, function(req, res) {
                 console.log("cannot find user");
             } else {
                 userinfo = JSON.parse(temp);
-                console.log("Query Result:" + userinfo.USERNAME);
-                console.log("userinfo.DEVICEID:" + userinfo.DEVICEID);
-                if(req.params.id == userinfo.DEVICEID) {
-                    data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp) {
+                //console.log("Query Result:" + userinfo.USERNAME);
+                //console.log("userinfo.DEVICEID:" + userinfo.DEVICEID);
+                if(userinfo.DEVICEID !== null) {
+                    json_out.DeviceId = userinfo.DEVICEID;
+                    data_obj.setRedis(userinfo.DEVICEID, null, req.params.slot, req.params.operation, function(temp) {
                         json_out.State = temp;
                         socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
                         res.send(JSON.stringify(json_out));
                     });                    
                 } else {
-                    res.send("This device is not belongs to you.");
+                    res.send("Device id null.");
                 }
             }
         });
 	}
 	else {
-		data_obj.getRedis(req.params.id , function(temp) {			
-			json_out.State = temp;			
-			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-			res.send(JSON.stringify(json_out));
-		});
+        data_obj.UserQuery(req.session.user, function(temp) {
+            if (temp === null) {
+                console.log("cannot find user");
+            } else {
+                userinfo = JSON.parse(temp);
+                if(userinfo.DEVICEID !== null) {
+                    json_out.DeviceId = userinfo.DEVICEID;
+                    data_obj.getRedis(userinfo.DEVICEID , function(temp) {			
+                        json_out.State = temp;
+                        socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+                        res.send(JSON.stringify(json_out));
+                    });                   
+                } else {
+                    res.send("Device id null.");
+                }
+            }
+        });
+        
 	}
 });
 

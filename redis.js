@@ -90,12 +90,12 @@ exports.UserQuery = function(Username, callback) {
 	client.on("error", function (err) {
 		console.log("Error " + err);
 	});
-	console.log("Username: " + Username);
+	//console.log("Username: " + Username);
 	client.get(Username, function(err, result) {
 		if (err) {
 			console.log(err);
 		}
-		console.log("UserQuery" + result);
+		//console.log("UserQuery" + result);
 		callback(result);    
 	});
 };
