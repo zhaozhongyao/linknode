@@ -142,6 +142,18 @@ app.get('/panel', restrict, function(req, res) {
     res.sendfile('./public/admin.html');
 });
 
+app.get('/panel/accessibility', restrict, function(req, res) {
+    res.sendfile('./public/accessibility.html');
+});
+
+app.get('/panel/device', restrict, function(req, res) {
+    res.sendfile('./public/device.html');
+});
+
+app.get('/panel/user', restrict, function(req, res) {
+    res.sendfile('./public/user.html');
+});
+
 app.get('/login', function(req, res) {
     res.sendfile('./public/login.html');
 });
@@ -234,8 +246,8 @@ app.get("/user/delete/:user" , function(req, res) {
 	});
 });
 
-app.get("/user/:user" , function(req, res) {
-	data_obj.UserQuery(req.params.user, function(UserInfo) {
+app.get("/user" ,restrict , function(req, res) {
+	data_obj.UserQuery(req.session.user , function(UserInfo) {
 		if(UserInfo === undefined || UserInfo === null ||UserInfo ==="") {
 			res.send("User not found!");
 		}
