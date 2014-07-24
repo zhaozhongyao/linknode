@@ -16,6 +16,10 @@ var data_obj = require('./redis.js');
 var socket_obj = require('./socket.js');
 var wechat_obj = require('./wechat.js');
 
+var UserDelete = {
+    "IsSuccess" : "false"
+};
+
 var Users = {
 	"USERNAME"  : "",
 	"EMAIL"  : "",
@@ -98,7 +102,7 @@ app.use(function(req, res, next){
 function authenticate(name, pass, fn) {
 	var userinfo = Users;
 	if (!module.parent) {
-        console.log('authenticating %s:%s', name, pass);
+        //console.log('authenticating %s:%s', name, pass);
 	}
 	data_obj.UserQuery(name, function(temp) {
 		if (temp === null) {
@@ -146,6 +150,71 @@ app.get('/panel/accessibility', restrict, function(req, res) {
     res.sendfile('./public/accessibility.html');
 });
 
+app.get('/tokin/:refresh?', restrict, function(req, res) {
+    var userinfo = Users;
+    if (req.params.refresh !== undefined) {
+        data_obj.UserQuery(req.session.user , function(temp) {
+            if(temp === undefined || temp === null || temp ==="") {
+                res.send("User not found!");
+            }
+            else
+            {
+                userinfo = JSON.parse(temp);
+                crypto.randomBytes(16, function(ex, buf) {  
+                    userinfo.TOKIN = buf.toString('hex').toUpperCase();
+                    data_obj.UserUpdate(req.session.user, JSON.stringify(userinfo), function(result) {
+                        res.send(result);
+                    });
+                }); 
+            }
+        });
+    } else {
+        data_obj.UserQuery(req.session.user , function(UserInfo) {
+            if(UserInfo === undefined || UserInfo === null || UserInfo ==="") {
+                res.send("User not found!");
+            }
+            else
+            {
+                res.send(UserInfo);
+            }
+        });
+    }
+});
+
+app.get('/password/:new', restrict, function(req, res) {
+    var userinfo = Users;
+    data_obj.UserQuery(req.session.user , function(temp) {
+        if(temp === undefined || temp === null || temp ==="") {
+            res.send("User not found!");
+        } else {
+            userinfo = JSON.parse(temp);
+            pass.hash(req.params.new, function(err, salt, hash) {
+                userinfo.SALT = salt;
+                userinfo.HASH = hash;
+                crypto.randomBytes(16, function(ex, buf) {  
+                    userinfo.TOKIN = buf.toString('hex').toUpperCase();
+                    data_obj.UserUpdate(userinfo.USERNAME, JSON.stringify(userinfo), function(temp) {
+                        authenticate(userinfo.USERNAME, req.params.new, function(err, userinfo) {
+                            if(err === null) {
+                                var user = JSON.parse(userinfo);
+                                if (user.USERNAME) {
+                                    req.session.regenerate(function(){
+                                    req.session.user = user.USERNAME;
+                                    req.session.success = 'Authenticated as ' + user.USERNAME
+                                      + ' click to <a href="/logout">logout</a>. '
+                                      + ' You may now access <a href="/panel">/panel</a>.';
+                                    res.send(user);
+                                  });
+                                }
+                            }
+                        });
+                    });
+                }); 
+            });
+        }
+    });
+});
+
 app.get('/panel/device', restrict, function(req, res) {
     res.sendfile('./public/device.html');
 });
@@ -190,7 +259,29 @@ app.post('/register', function(req, res) {
 		crypto.randomBytes(16, function(ex, buf) {  
 			newUsers.TOKIN = buf.toString('hex').toUpperCase();
 			data_obj.UserRegister(newUsers.USERNAME, JSON.stringify(newUsers), function(temp) {
-				res.send(temp);
+				//res.send(temp);
+				authenticate(newUsers.USERNAME, req.body.password, function(err, userinfo) {
+                    if(err === null) {
+                        var user = JSON.parse(userinfo);
+                        if (user.USERNAME) {
+                            req.session.regenerate(function(){
+                            req.session.user = user.USERNAME;
+                            req.session.success = 'Authenticated as ' + user.USERNAME
+                              + ' click to <a href="/logout">logout</a>. '
+                              + ' You may now access <a href="/panel">/panel</a>.';
+                            res.redirect('/panel');
+                          });
+                        } else {
+                            req.session.error = 'Authentication failed, please check your '
+                            + ' username and password.';
+                            res.redirect('back');
+                        }
+                    } else {
+                        req.session.error = 'Authentication failed, please check your '
+                            + ' username and password.';
+                        res.redirect('/login');
+                    }
+                });
 			});
 		}); 
 	}); 
@@ -240,9 +331,23 @@ app.post('/login', function(req, res) {
     }
 });
 
-app.get("/user/delete/:user" , function(req, res) {
-	data_obj.UserRegister(req.params.user, "", function(temp) {
-		res.send(temp);
+//app.get("/user/delete/:user" , function(req, res) {
+//	data_obj.UserRegister(req.params.user, "", function(temp) {
+//		res.send(temp);
+//	});
+//});
+//Resverd functions.
+//this functions can delete users.
+
+
+
+app.get("/user/delete" ,restrict , function(req, res) {
+    var result = UserDelete;
+	data_obj.UserRegister(req.session.user, "", function(temp) {
+		req.session.destroy(function() {
+            result.IsSuccess = "true";
+            res.send(JSON.stringify(result));
+        });
 	});
 });
 
@@ -324,7 +429,7 @@ app.get("/api/device/:slot?/:operation?", restrict, function(req, res) {
                 userinfo = JSON.parse(temp);
                 //console.log("Query Result:" + userinfo.USERNAME);
                 //console.log("userinfo.DEVICEID:" + userinfo.DEVICEID);
-                if(userinfo.DEVICEID !== null) {
+                if(userinfo.DEVICEID !== null && userinfo.DEVICEID !== "") {
                     json_out.DeviceId = userinfo.DEVICEID;
                     data_obj.setRedis(userinfo.DEVICEID, null, req.params.slot, req.params.operation, function(temp) {
                         json_out.State = temp;
@@ -343,7 +448,8 @@ app.get("/api/device/:slot?/:operation?", restrict, function(req, res) {
                 console.log("cannot find user");
             } else {
                 userinfo = JSON.parse(temp);
-                if(userinfo.DEVICEID !== null) {
+                console.log(userinfo.DEVICEID);
+                if(userinfo.DEVICEID !== null && userinfo.DEVICEID !== "") {
                     json_out.DeviceId = userinfo.DEVICEID;
                     data_obj.getRedis(userinfo.DEVICEID , function(temp) {			
                         json_out.State = temp;

@@ -135,7 +135,7 @@
                                         <tr class="odd gradeA" id="change_but">
                                             <td>Password:</td>
                                             <td>
-                                                <input id="span1" type="text">
+                                                <input id="span1" type="password">
                                                 <a id="change" class="btn btn-primary btn-sm" href="#" role="button">change</a>
                                             </td>
                                         </tr>
@@ -160,6 +160,10 @@
                             <!-- /.table-responsive -->
                         </div>
                         <!-- /.panel-body -->
+                        
+                        <div class="panel-footer" align="right" id="destroy_but">
+                            <a id="destroy" class="btn btn-danger btn-sm" href="#" role="button">destroy account</a>
+                        </div>
                     </div>
                     <!-- /.panel -->
                 </div>
@@ -193,10 +197,52 @@
     </div>
     <!-- /#wrapper -->
     <script src="/js/jquery-1.10.2.js"></script>
+    
+    <script type="text/javascript">
+    $(function(){
+        $("#destroy_but a").bind("click",function(){
+            if(confirm("Really want to destory your account?"))
+            {
+                var url = "/user/delete";
+                $.getJSON(url, function(json){
+                    if(json.IsSuccess == "true") {
+                        alert("account destory success!");
+                        window.location.href="/login";
+                    } else {
+                        alert("failed.");
+                    }
+                }); 
+            }
+            else
+            {
+                //alert("nothing happen.");
+            }
+        });
+    });
+    </script>
+    
     <script type="text/javascript">
     $(function(){
         $("#change_but a").bind("click",function(){
-            alert("password");
+            var password = document.getElementById("span1").value;
+            var oldtokin = document.getElementById("TOKIN").innerHTML;
+            var but = document.getElementById('change'); 
+            but.setAttribute("class", "btn btn-primary btn-sm disabled"); 
+            
+            if(password !== "") {
+                var url = "/password/"+ password;
+                $.getJSON(url, function(json){
+                    if(json.TOKIN !== oldtokin) {
+                        $("#TOKIN").html(json.TOKIN);
+                        alert("password change success!");
+                    } else {
+                        alert("password change failed!");
+                    }
+                    but.setAttribute("class", "btn btn-primary btn-sm");
+                }); 
+            } else {
+                alert("please input password!");
+            }
         });
     });
     </script>
@@ -204,11 +250,18 @@
     <script type="text/javascript">
     $(function(){
         $("#submit_but a").bind("click",function(){
+            var but = document.getElementById('submit'); 
+            but.setAttribute("class", "btn btn-primary btn-sm disabled"); 
             var deviceid = document.getElementById("span2").value;
-            var url = "/bind/" + deviceid;
-            $.getJSON(url, function(json){
-                $("#DeviceID").html(json.DEVICEID);
-            }); 
+            if(deviceid.length == 8) {
+                var url = "/bind/" + deviceid;
+                $.getJSON(url, function(json){
+                    $("#DeviceID").html(json.DEVICEID);
+                    but.setAttribute("class", "btn btn-primary btn-sm");
+                }); 
+            } else {
+                alert("The length of device ID should be 8.");
+            }
         });
     });
     </script>    
@@ -216,9 +269,12 @@
     <script type="text/javascript">
     $(function(){
         $("#refresh_but a").bind("click",function(){
+            var but = document.getElementById('refresh'); 
+            but.setAttribute("class", "btn btn-primary btn-sm disabled"); 
             var url = "/tokin/refresh";
                 $.getJSON(url, function(json){
                     $("#TOKIN").html(json.TOKIN);
+                    but.setAttribute("class", "btn btn-primary btn-sm"); 
                 }); 
         });
     });
@@ -229,7 +285,7 @@
         document.onreadystatechange = function () {   
             if(document.readyState=="complete") {   
                 var url = "/user";
-                    $.getJSON(url, function(json){
+                $.getJSON(url, function(json){
                     $("#USERNAME").html(json.USERNAME);
                     $("#EMAIL").html(json.EMAIL);
                     $("#DeviceID").html(json.DEVICEID);

@@ -1,6 +1,8 @@
 var redis = require('redis'); 
 var db_port = 16379;
 
+//redis-server --port 16379 --bind $IP
+
 function replacePos(strObj, pos, replacetext , callback) {
     var str = '';
     var err = '';
@@ -51,7 +53,7 @@ exports.UserRegister = function(Username, JsonUser, callback) {
 					if (err) {
 						console.log(err);
 					}
-					console.log(result);
+					//console.log(result);
 					callback(result);    
 				});
 			} else {
@@ -76,7 +78,7 @@ exports.UserUpdate = function(Username, JsonUser, callback) {
 				if (err) {
 					console.log(err);
 				}
-				console.log(result);
+				//console.log(result);
 				callback(result);    
 			});
 		} else {
