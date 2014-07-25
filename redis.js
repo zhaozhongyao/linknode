@@ -1,7 +1,18 @@
 var redis = require('redis'); 
 var db_port = 16379;
-
+var redis_connected = false;
 //redis-server --port 16379 --bind $IP
+var client = redis.createClient(db_port,process.env.IP);
+
+client.on("error", function (err) {
+	redis_connected = false;
+	console.log("Error " + err);
+});
+
+client.on("connect", function () {
+	redis_connected = true;
+    console.log('REDIS connected on port :%d', db_port);
+});
 
 function replacePos(strObj, pos, replacetext , callback) {
     var str = '';
@@ -21,8 +32,7 @@ function replacePos(strObj, pos, replacetext , callback) {
 		if ((pos > 0) && (pos < 6)) {
 			str = strObj.substr(0, pos-1) + replacetext + strObj.substring(pos, strObj.length);
 			callback(str);
-		}
-		else {
+		} else {
 			err = strObj;
 			callback(err);
 		}
@@ -30,24 +40,47 @@ function replacePos(strObj, pos, replacetext , callback) {
 }
 
 exports.UserRegister = function(Username, JsonUser, callback) {
-	var client = redis.createClient(db_port,process.env.IP);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	if (JsonUser === "") {
-		client.del(Username);
-		client.get(Username, function(err, result) {
-			if (err) {
-				console.log(err);
-			}
-			callback("User has been deleted!");    
-		});
+	if (redis_connected) {
+		if (JsonUser === "") {
+			client.del(Username);
+			client.get(Username, function(err, result) {
+				if (err) {
+					console.log(err);
+				}
+				callback("User has been deleted!");    
+			});
+		} else {
+			client.get(Username, function(err, result) {
+				if (err) {
+					console.log(err);
+				}
+				if (result === null) {
+					client.set(Username, JsonUser);
+					client.get(Username, function(err, result) {
+						if (err) {
+							console.log(err);
+						}
+						//console.log(result);
+						callback(result);    
+					});
+				} else {
+					callback("Username already exist!");  
+				}
+			});  
+		}
 	} else {
+		console.log("Error :Redis not connected!");
+		callback("DB_ERR");
+	}
+};
+
+exports.UserUpdate = function(Username, JsonUser, callback) {
+	if (redis_connected) {
 		client.get(Username, function(err, result) {
 			if (err) {
 				console.log(err);
 			}
-			if (result === null) {
+			if (result !== null) {
 				client.set(Username, JsonUser);
 				client.get(Username, function(err, result) {
 					if (err) {
@@ -57,127 +90,105 @@ exports.UserRegister = function(Username, JsonUser, callback) {
 					callback(result);    
 				});
 			} else {
-				callback("Username already exist!");  
+				callback("Username not exist!");  
 			}
 		});  
+	} else {
+		console.log("Error :Redis not connected!");
+		callback("DB_ERR");
 	}
-};
-
-exports.UserUpdate = function(Username, JsonUser, callback) {
-	var client = redis.createClient(db_port,process.env.IP);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	client.get(Username, function(err, result) {
-		if (err) {
-			console.log(err);
-		}
-		if (result !== null) {
-			client.set(Username, JsonUser);
-			client.get(Username, function(err, result) {
-				if (err) {
-					console.log(err);
-				}
-				//console.log(result);
-				callback(result);    
-			});
-		} else {
-			callback("Username not exist!");  
-		}
-	});  
 };
 
 exports.UserQuery = function(Username, callback) {
-	var client = redis.createClient(db_port,process.env.IP);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	//console.log("Username: " + Username);
-	client.get(Username, function(err, result) {
-		if (err) {
-			console.log(err);
-		}
-		//console.log("UserQuery" + result);
-		callback(result);    
-	});
-};
-
-exports.bindRedis = function(FromUserName, deviceId , callback) {
-	var client = redis.createClient(db_port,process.env.IP);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
- 
-	client.set(FromUserName, deviceId);
- 
-	client.get(FromUserName, function(err, result) {
-		if (err) {
-			console.log(err);
-		}
-		console.log("bindRedis " + FromUserName + " " + result);
-		callback(result);    
-	}); 
-};
- 
-exports.setRedis = function(devId, userId, slotId , slotState , callback) {
-	var client = redis.createClient(db_port,process.env.IP);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	if(devId === null) {
-		client.get(userId, function(err, deviceId) {
+	if (redis_connected) {
+		//console.log("Username: " + Username);
+		client.get(Username, function(err, result) {
 			if (err) {
 				console.log(err);
 			}
-			if (deviceId === null) {
-				console.log("NOTFOUND");
-				callback("NOTFOUND"); 
-			} else {
-				if(deviceId.length == 8) {
-					client.get(deviceId , function(err, result) {
-						if (err) {
-							console.log(err);
-						}
-						replacePos(result, slotId, slotState ,function(deviceState) {
-							client.set(deviceId, deviceState);
-							console.log('Device State Update [' + deviceId + ':(' + result + '->' + deviceState + ')]');
-							callback(deviceState); 
-						});
-					}); 
-				}
-			}
-		}); 
+			//console.log("UserQuery" + result);
+			callback(result);    
+		});
+	} else {
+		console.log("Error :Redis not connected!");
+		callback("DB_ERR");
 	}
-	else {
-		if(devId.length == 8) {
-			client.get(devId , function(err, result) {
+};
+
+exports.bindRedis = function(FromUserName, deviceId , callback) {
+	if (redis_connected) {
+		client.set(FromUserName, deviceId);
+		client.get(FromUserName, function(err, result) {
+			if (err) {
+				console.log(err);
+			}
+			console.log("bindRedis " + FromUserName + " " + result);
+			callback(result);    
+		}); 
+	} else {
+		console.log("Error :Redis not connected!");
+		callback("DB_ERR");
+	}
+};
+ 
+exports.setRedis = function(devId, userId, slotId , slotState , callback) {
+	if (redis_connected) {
+		if(devId === null) {
+			client.get(userId, function(err, deviceId) {
 				if (err) {
 					console.log(err);
 				}
-				replacePos(result, slotId, slotState ,function(deviceState) {
-					client.set(devId, deviceState);
-					console.log('Device State Update [' + devId + ':(' + result + '->' + deviceState + ')]');
-					callback(deviceState); 
-				});
+				if (deviceId === null) {
+					console.log("NOTFOUND");
+					callback("NOTFOUND"); 
+				} else {
+					if(deviceId.length == 8) {
+						client.get(deviceId , function(err, result) {
+							if (err) {
+								console.log(err);
+							}
+							replacePos(result, slotId, slotState ,function(deviceState) {
+								client.set(deviceId, deviceState);
+								console.log('Device State Update [' + deviceId + ':(' + result + '->' + deviceState + ')]');
+								callback(deviceState); 
+							});
+						}); 
+					}
+				}
 			}); 
+		} else {
+			if(devId.length == 8) {
+				client.get(devId , function(err, result) {
+					if (err) {
+						console.log(err);
+					}
+					replacePos(result, slotId, slotState ,function(deviceState) {
+						client.set(devId, deviceState);
+						console.log('Device State Update [' + devId + ':(' + result + '->' + deviceState + ')]');
+						callback(deviceState); 
+					});
+				}); 
+			} else {
+				console.log("NOTFOUND");
+				callback("NOTFOUND"); 
+			}
 		}
-		else {
-			console.log("NOTFOUND");
-			callback("NOTFOUND"); 
-		}
+	} else {
+		console.log("Error :Redis not connected!");
+		callback("DB_ERR");
 	}
- 
 };
 
 exports.getRedis = function(key , callback) {
-	var client = redis.createClient(db_port,process.env.IP);
-	client.on("error", function (err) {
-		console.log("Error " + err);
-	});
-	client.get(key, function(err, value) {
-		if (err) {
-			console.log(err);   
-		}
-		callback(value); 
-	});  
+	if (redis_connected) {
+		client.get(key, function(err, value) {
+			if (err) {
+				console.log(err);   
+			}
+			callback(value); 
+		});  
+	} else {
+		console.log("Error :Redis not connected!");
+		callback("DB_ERR");
+	}
 };

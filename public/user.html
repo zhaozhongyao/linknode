@@ -108,7 +108,8 @@
         <div id="page-wrapper">
             <div id="main">
                 <div class="col-lg-12">
-                    <h1 class="page-header">User Management:</h1>
+                    <!-- h1 class="page-header">User Management:</h1 -->
+                    <p></p>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>
@@ -140,11 +141,19 @@
                                             </td>
                                         </tr>
                                         <tr class="odd gradeA" id="submit_but">
-                                            <td>Device:</td>
+                                            <td>Device1:</td>
                                             <td>
                                                 <span id="DeviceID">00000000</span>
                                                 <input id="span2" type="text">
                                                 <a id="submit" class="btn btn-primary btn-sm" href="#" role="button">bind</a>
+                                            </td>
+                                        </tr>
+                                        <tr class="odd gradeA" id="submit_but2">
+                                            <td>Device2:</td>
+                                            <td>
+                                                <span id="DeviceID2">00000000</span>
+                                                <input id="span3" type="text">
+                                                <a id="submit2" class="btn btn-primary btn-sm" href="#" role="button">bind</a>
                                             </td>
                                         </tr>
                                         <tr class="even gradeA" id="refresh_but">
@@ -199,12 +208,12 @@
     <script src="/js/jquery-1.10.2.js"></script>
     
     <script type="text/javascript">
-    $(function(){
-        $("#destroy_but a").bind("click",function(){
+    $(function() {
+        $("#destroy_but a").bind("click",function() {
             if(confirm("Really want to destory your account?"))
             {
                 var url = "/user/delete";
-                $.getJSON(url, function(json){
+                $.getJSON(url, function(json) {
                     if(json.IsSuccess == "true") {
                         alert("account destory success!");
                         window.location.href="/login";
@@ -222,8 +231,8 @@
     </script>
     
     <script type="text/javascript">
-    $(function(){
-        $("#change_but a").bind("click",function(){
+    $(function() {
+        $("#change_but a").bind("click",function() {
             var password = document.getElementById("span1").value;
             var oldtokin = document.getElementById("TOKIN").innerHTML;
             var but = document.getElementById('change'); 
@@ -231,7 +240,7 @@
             
             if(password !== "") {
                 var url = "/password/"+ password;
-                $.getJSON(url, function(json){
+                $.getJSON(url, function(json) {
                     if(json.TOKIN !== oldtokin) {
                         $("#TOKIN").html(json.TOKIN);
                         alert("password change success!");
@@ -241,6 +250,7 @@
                     but.setAttribute("class", "btn btn-primary btn-sm");
                 }); 
             } else {
+                but.setAttribute("class", "btn btn-primary btn-sm");
                 alert("please input password!");
             }
         });
@@ -248,31 +258,52 @@
     </script>
     
     <script type="text/javascript">
-    $(function(){
-        $("#submit_but a").bind("click",function(){
+    $(function() {
+        $("#submit_but a").bind("click",function() {
             var but = document.getElementById('submit'); 
             but.setAttribute("class", "btn btn-primary btn-sm disabled"); 
             var deviceid = document.getElementById("span2").value;
             if(deviceid.length == 8) {
-                var url = "/bind/" + deviceid;
-                $.getJSON(url, function(json){
+                var url = "/bind/1/" + deviceid;
+                $.getJSON(url, function(json) {
                     $("#DeviceID").html(json.DEVICEID);
                     but.setAttribute("class", "btn btn-primary btn-sm");
                 }); 
             } else {
+                but.setAttribute("class", "btn btn-primary btn-sm");
                 alert("The length of device ID should be 8.");
             }
         });
     });
     </script>    
+ 
+    <script type="text/javascript">
+    $(function() {
+        $("#submit_but2 a").bind("click",function() {
+            var but = document.getElementById('submit2'); 
+            but.setAttribute("class", "btn btn-primary btn-sm disabled"); 
+            var deviceid = document.getElementById("span3").value;
+            if(deviceid.length == 8) {
+                var url = "/bind/2/" + deviceid;
+                $.getJSON(url, function(json) {
+                    $("#DeviceID2").html(json.DEVICEID2);
+                    but.setAttribute("class", "btn btn-primary btn-sm");
+                }); 
+            } else {
+                but.setAttribute("class", "btn btn-primary btn-sm");
+                alert("The length of device ID should be 8.");
+            }
+        });
+    });
+    </script>   
     
     <script type="text/javascript">
-    $(function(){
-        $("#refresh_but a").bind("click",function(){
+    $(function() {
+        $("#refresh_but a").bind("click",function() {
             var but = document.getElementById('refresh'); 
             but.setAttribute("class", "btn btn-primary btn-sm disabled"); 
             var url = "/tokin/refresh";
-                $.getJSON(url, function(json){
+                $.getJSON(url, function(json) {
                     $("#TOKIN").html(json.TOKIN);
                     but.setAttribute("class", "btn btn-primary btn-sm"); 
                 }); 
@@ -289,7 +320,9 @@
                     $("#USERNAME").html(json.USERNAME);
                     $("#EMAIL").html(json.EMAIL);
                     $("#DeviceID").html(json.DEVICEID);
+                    $("#DeviceID2").html(json.DEVICEID2);
                     document.getElementById("span2").value = json.DEVICEID;
+                    document.getElementById("span3").value = json.DEVICEID2;
                     $("#TOKIN").html(json.TOKIN);
                 }); 
             }   

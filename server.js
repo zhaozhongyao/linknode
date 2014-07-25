@@ -16,6 +16,7 @@ var data_obj = require('./redis.js');
 var socket_obj = require('./socket.js');
 var wechat_obj = require('./wechat.js');
 
+var ERR_NULL_ID = {"error":"NULLID"};
 var UserDelete = {
     "IsSuccess" : "false"
 };
@@ -26,6 +27,7 @@ var Users = {
 	"SALT"	: "",
 	"HASH"	: "",
 	"DEVICEID"  : "",
+	"DEVICEID2"  : "",
 	"TOKIN"  : ""
 };
 
@@ -34,10 +36,11 @@ var DeviceState = {
 	"IsSuccess" : "Success",
 	"NSlots"    : "5",
 	"State"     : "00000",
+	"IsOnline"  : "false",
 	"ServerTime": "2014-5-19 14:47:56"
 };
 
-var server = net.createServer(function(socket) {
+var tcp_server = net.createServer(function(socket) {
 	// Increment
 	guestId++;
 	socket.nickname = "Client_" + guestId;
@@ -69,14 +72,14 @@ var server = net.createServer(function(socket) {
 });
 
 // Listening for any problems with the server
-server.on('error', function(error) {
+tcp_server.on('error', function(error) {
 	console.log("So we got problems!", error.message);
 });
 
 // Listen for a port to telnet to
 // then in the terminal just run 'telnet localhost [port]'
-server.listen(port, function() {
-	console.log("TCP  listening on port :" + port);
+tcp_server.listen(port, function() {
+	console.log("TCP   listening on port :" + port);
 });
 
 app.use(express.static(__dirname + '/public'));
@@ -108,6 +111,9 @@ function authenticate(name, pass, fn) {
 		if (temp === null) {
 			console.log("cannot find user");
 			return fn(new Error('cannot find user'));
+		} else if (temp == "DB_ERR") {
+		    console.log("DB_ERROR");
+			return fn(new Error('DB_ERROR'));
 		} else {
             userinfo = JSON.parse(temp);
             //console.log("Query Result:" + userinfo.USERNAME);
@@ -198,13 +204,13 @@ app.get('/password/:new', restrict, function(req, res) {
                             if(err === null) {
                                 var user = JSON.parse(userinfo);
                                 if (user.USERNAME) {
-                                    req.session.regenerate(function(){
-                                    req.session.user = user.USERNAME;
-                                    req.session.success = 'Authenticated as ' + user.USERNAME
-                                      + ' click to <a href="/logout">logout</a>. '
-                                      + ' You may now access <a href="/panel">/panel</a>.';
-                                    res.send(user);
-                                  });
+                                    req.session.regenerate(function() {
+                                        req.session.user = user.USERNAME;
+                                        req.session.success = 'Authenticated as ' + user.USERNAME
+                                          + ' click to <a href="/logout">logout</a>. '
+                                          + ' You may now access <a href="/panel">/panel</a>.';
+                                        res.send(user);
+                                    });
                                 }
                             }
                         });
@@ -299,34 +305,38 @@ app.post('/login', function(req, res) {
         
     } else {
         authenticate(req.body.uname, req.body.password, function(err, userinfo) {
-        if(err === null) {
-            var user = JSON.parse(userinfo);
-            if (user.USERNAME) {
-              // Regenerate session when signing in
-              // to prevent fixation
-                req.session.regenerate(function(){
-                // Store the user's primary key
-                // in the session store to be retrieved,
-                // or in this case the entire user object
-                req.session.user = user.USERNAME;
-                req.session.success = 'Authenticated as ' + user.USERNAME
-                  + ' click to <a href="/logout">logout</a>. '
-                  + ' You may now access <a href="/panel">/panel</a>.';
-                //console.log("Login success:" + user.USERNAME);
-                res.redirect('/panel');
-              });
+            if(err === null) {
+                var user = JSON.parse(userinfo);
+                if (user.USERNAME) {
+                  // Regenerate session when signing in
+                  // to prevent fixation
+                    req.session.regenerate(function(){
+                    // Store the user's primary key
+                    // in the session store to be retrieved,
+                    // or in this case the entire user object
+                    req.session.user = user.USERNAME;
+                    req.session.success = 'Authenticated as ' + user.USERNAME
+                      + ' click to <a href="/logout">logout</a>. '
+                      + ' You may now access <a href="/panel">/panel</a>.';
+                    //console.log("Login success:" + user.USERNAME);
+                    res.redirect('/panel');
+                  });
+                } else {
+                  req.session.error = 'Authentication failed, please check your '
+                    + ' username and password.';
+                  res.redirect('back');
+                }
+            } else if (err == "DB_ERROR") {
+                console.log("ErrMsg:" + err);
+                req.session.error = 'DBERROR';
+                res.redirect('/login');
             } else {
-              req.session.error = 'Authentication failed, please check your '
-                + ' username and password.';
-              res.redirect('back');
+                //console.log("ErrMsg:" + err);
+                //console.log("UserInfo:" + userinfo);
+                req.session.error = 'Authentication failed, please check your '
+                    + ' username and password.';
+                res.redirect('/login');
             }
-        } else {
-            //console.log("ErrMsg:" + err);
-            //console.log("UserInfo:" + userinfo);
-            req.session.error = 'Authentication failed, please check your '
-                + ' username and password.';
-            res.redirect('/login');
-        }
         });
     }
 });
@@ -372,16 +382,20 @@ app.post('/wechat',function(req, res) {
 	wechat_obj.handler(req, res);
 });
 
-app.get("/bind/:id", restrict, function(req, res) {
+app.get("/bind/:num/:id", restrict, function(req, res) {
 	var userinfo = Users;
-	if (req.params.id !== undefined && req.session.user !== undefined) {
+	if (req.params.num !== undefined && req.params.id !== undefined && req.session.user !== undefined) {
         data_obj.UserQuery(req.session.user, function(temp) {
             if (temp === null) {
                 console.log("cannot find user");
                 res.send("cannot find user");
             } else {
                 userinfo = JSON.parse(temp);
-                userinfo.DEVICEID = req.params.id;
+                if (req.params.num == "1") {
+                    userinfo.DEVICEID = req.params.id;
+                } else if (req.params.num == "2") {
+                    userinfo.DEVICEID2 = req.params.id;
+                }
                 //console.log("Query Result:" + userinfo.USERNAME);
                 //console.log("\nUserinfo.DEVICEID:" + userinfo.DEVICEID);
                 
@@ -417,7 +431,7 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res) {
 });
 
 
-app.get("/api/device/:slot?/:operation?", restrict, function(req, res) {
+app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
 	var json_out = DeviceState;
     var userinfo = Users;
 	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
@@ -427,17 +441,20 @@ app.get("/api/device/:slot?/:operation?", restrict, function(req, res) {
                 console.log("cannot find user");
             } else {
                 userinfo = JSON.parse(temp);
-                //console.log("Query Result:" + userinfo.USERNAME);
-                //console.log("userinfo.DEVICEID:" + userinfo.DEVICEID);
                 if(userinfo.DEVICEID !== null && userinfo.DEVICEID !== "") {
-                    json_out.DeviceId = userinfo.DEVICEID;
-                    data_obj.setRedis(userinfo.DEVICEID, null, req.params.slot, req.params.operation, function(temp) {
+                    if (req.params.num == "1") {
+                        json_out.DeviceId = userinfo.DEVICEID;
+                    }
+                    if (req.params.num == "2") {
+                        json_out.DeviceId = userinfo.DEVICEID2;
+                    }
+                    data_obj.setRedis(json_out.DeviceId, null, req.params.slot, req.params.operation, function(temp) {
                         json_out.State = temp;
                         socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
                         res.send(JSON.stringify(json_out));
                     });                    
                 } else {
-                    res.send("Device id null.");
+                    res.send(ERR_NULL_ID);
                 }
             }
         });
@@ -448,16 +465,21 @@ app.get("/api/device/:slot?/:operation?", restrict, function(req, res) {
                 console.log("cannot find user");
             } else {
                 userinfo = JSON.parse(temp);
-                console.log(userinfo.DEVICEID);
                 if(userinfo.DEVICEID !== null && userinfo.DEVICEID !== "") {
-                    json_out.DeviceId = userinfo.DEVICEID;
-                    data_obj.getRedis(userinfo.DEVICEID , function(temp) {			
+                    if (req.params.num == "1") {
+                        json_out.DeviceId = userinfo.DEVICEID;
+                    }
+                    if (req.params.num == "2") {
+                        json_out.DeviceId = userinfo.DEVICEID2;
+                    }
+                    console.log(json_out.DEVICEID);
+                    data_obj.getRedis(json_out.DeviceId , function(temp) {			
                         json_out.State = temp;
-                        socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+                        //socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
                         res.send(JSON.stringify(json_out));
                     });                   
                 } else {
-                    res.send("Device id null.");
+                    res.send(ERR_NULL_ID);
                 }
             }
         });
@@ -465,7 +487,6 @@ app.get("/api/device/:slot?/:operation?", restrict, function(req, res) {
 	}
 });
 
-var server = app.listen(httpport, function() {
-    console.log('HTTP listening on port :%d', server.address().port);
-    console.log('Dir :%s', __dirname);
+app.listen(httpport, function() {
+    console.log('HTTP  listening on port :%d', httpport);
 });
