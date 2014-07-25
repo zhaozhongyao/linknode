@@ -472,7 +472,7 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
                     if (req.params.num == "2") {
                         json_out.DeviceId = userinfo.DEVICEID2;
                     }
-                    console.log(json_out.DEVICEID);
+                    //console.log(json_out.DEVICEID);
                     data_obj.getRedis(json_out.DeviceId , function(temp) {			
                         json_out.State = temp;
                         //socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');

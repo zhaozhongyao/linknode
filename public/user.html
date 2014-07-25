@@ -32,27 +32,9 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="index.html">HOMELINK</a>
+                <a class="navbar-brand" href="/panel">HOMELINK</a>
             </div>
-            <!-- /.navbar-header -->
-            <ul class="nav navbar-top-links navbar-right">
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-user">
-                        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
-                        </li>
-                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
-                        </li>
-                        <li class="divider"></li>
-                        <li><a href="/logout"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
-                        </li>
-                    </ul>
-                    <!-- /.dropdown-user -->
-                </li>
-                <!-- /.dropdown -->
-            </ul>
+
             <!-- /.navbar-top-links -->
             <div class="navbar-default navbar-static-side" role="navigation">
                 <div class="sidebar-collapse">
@@ -87,13 +69,10 @@
                             <a href="#"><i class="fa fa-wrench fa-fw"></i> Settings<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
-                                    <a href="/panel/user">User</a>
+                                    <a href="/panel/user">User&Device</a>
                                 </li>
                                 <li>
-                                    <a href="/panel/device">Device</a>
-                                </li>
-                                <li>
-                                    <a href="/panel/accessibility">Accessibility</a>
+                                    <a href="/logout">Logout</a>
                                 </li>
                             </ul>
                             <!-- /.nav-second-level -->
@@ -137,7 +116,7 @@
                                             <td>Password:</td>
                                             <td>
                                                 <input id="span1" type="password">
-                                                <a id="change" class="btn btn-primary btn-sm" href="#" role="button">change</a>
+                                                <a id="change" class="btn btn-primary btn-sm" role="button">change</a>
                                             </td>
                                         </tr>
                                         <tr class="odd gradeA" id="submit_but">
@@ -145,7 +124,7 @@
                                             <td>
                                                 <span id="DeviceID">00000000</span>
                                                 <input id="span2" type="text">
-                                                <a id="submit" class="btn btn-primary btn-sm" href="#" role="button">bind</a>
+                                                <a id="submit" class="btn btn-primary btn-sm" role="button">bind</a>
                                             </td>
                                         </tr>
                                         <tr class="odd gradeA" id="submit_but2">
@@ -153,14 +132,14 @@
                                             <td>
                                                 <span id="DeviceID2">00000000</span>
                                                 <input id="span3" type="text">
-                                                <a id="submit2" class="btn btn-primary btn-sm" href="#" role="button">bind</a>
+                                                <a id="submit2" class="btn btn-primary btn-sm" role="button">bind</a>
                                             </td>
                                         </tr>
                                         <tr class="even gradeA" id="refresh_but">
                                             <td>Tokin:</td>
                                             <td>
                                                 <span id="TOKIN">00000000000000000000000000000000</span>
-                                                <a id="refresh" name="refresh" class="btn btn-primary btn-sm" href="#" role="button">refresh</a>
+                                                <a id="refresh" name="refresh" class="btn btn-primary btn-sm" role="button">refresh</a>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -171,7 +150,7 @@
                         <!-- /.panel-body -->
                         
                         <div class="panel-footer" align="right" id="destroy_but">
-                            <a id="destroy" class="btn btn-danger btn-sm" href="#" role="button">destroy account</a>
+                            <a id="destroy" class="btn btn-danger btn-sm" role="button">destroy account</a>
                         </div>
                     </div>
                     <!-- /.panel -->
@@ -329,9 +308,9 @@
         };
     </script>   
     <!-- Core Scripts - Include with every page -->
-    <script src="/js/jquery-1.10.2.js"></script>
+    <!--script src="/js/jquery-1.10.2.js"></script-->
     <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <!-- script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script -->
 
 
     <!-- SB Admin Scripts - Include with every page -->
