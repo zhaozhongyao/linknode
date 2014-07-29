@@ -11,6 +11,7 @@ var app = express();
 var httpport = 8080;
 var port = 30059;
 var guestId = 0;
+var timezone = -8;
 
 var data_obj = require('./redis.js');
 var socket_obj = require('./socket.js');
@@ -413,7 +414,7 @@ app.get("/bind/:num/:id", restrict, function(req, res) {
 app.get("/device/:id/:slot?/:operation?" , function(req, res) {
 	var json_out = DeviceState;
 	json_out.DeviceId = req.params.id;
-	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
+	json_out.ServerTime = moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss');
 	if (req.params.operation !== undefined) {
 		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp) {
 			json_out.State = temp;
@@ -434,7 +435,7 @@ app.get("/device/:id/:slot?/:operation?" , function(req, res) {
 app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
 	var json_out = DeviceState;
     var userinfo = Users;
-	json_out.ServerTime = moment().format('YYYY-MM-DD, HH:mm:ss');
+	json_out.ServerTime = moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss');
 	if (req.params.operation !== undefined) {
         data_obj.UserQuery(req.session.user, function(temp) {
             if (temp === null) {
@@ -489,4 +490,5 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
 
 app.listen(httpport, function() {
     console.log('HTTP  listening on port :%d', httpport);
+    console.log('Server started at :%s', moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss'));
 });

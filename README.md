@@ -16,6 +16,7 @@ Happy coding!
 #USEAGE
 
 Http Post:
+
     /wechat
     
     /register
@@ -23,6 +24,7 @@ Http Post:
     /login
 
 Http Get:
+
     /panel
     
     /login
