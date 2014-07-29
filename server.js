@@ -12,6 +12,7 @@ var httpport = 8080;
 var port = 30059;
 var guestId = 0;
 var timezone = -8;
+var heartbeat_check_interval = 1000 * 30;
 
 var data_obj = require('./redis.js');
 var socket_obj = require('./socket.js');
@@ -34,12 +35,19 @@ var Users = {
 
 var DeviceState = {
 	"DeviceId"  : "00000000",
-	"IsSuccess" : "Success",
-	"NSlots"    : "5",
+	"IsSuccess" : true,
+	"NSlots"    : 5,
 	"State"     : "00000",
-	"IsOnline"  : "false",
+	"IsOnline"  : false,
+	"Heartbeat" : 0,
 	"ServerTime": "2014-5-19 14:47:56"
 };
+
+function heartbeat_timer() {
+    //console.log("heartbeating..");
+    //online tree traversal.
+    //and dicrease 1 heartbeat counter to every online device.
+}
 
 var tcp_server = net.createServer(function(socket) {
 	// Increment
@@ -57,7 +65,9 @@ var tcp_server = net.createServer(function(socket) {
 	socket.on('data', function(data) {
 		//var message = clientName + '> ' + data.toString();
 		//broadcast(clientName, message);
-		//process.stdout.write(message);
+		//parse packet,find device id.
+		console.log(data.toString());
+		//set device heartbeat counter to N(similer to TTL). mybe N = heartbeat_check_interval × 6
 	});
 	// When client leaves
 	socket.on('end', function() {
@@ -491,4 +501,5 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
 app.listen(httpport, function() {
     console.log('HTTP  listening on port :%d', httpport);
     console.log('Server started at :%s', moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss'));
+    setInterval(heartbeat_timer,heartbeat_check_interval);
 });
