@@ -4,6 +4,17 @@ var redis_connected = false;
 //redis-server --port 16379 --bind $IP
 var client = redis.createClient(db_port,process.env.IP);
 
+var DeviceState1 = {
+	"DeviceId"  : "00000000",
+	"IsSuccess" : true,
+	"NSlots"    : 5,
+	"State"     : "00000",
+	"IsOnline"  : false,
+	"Heartbeat" : 0,
+	"Sensor" : "",
+	"ServerTime": "2014-5-19 14:47:56"
+};
+
 client.on("error", function (err) {
 	redis_connected = false;
 	console.log("Error " + err);
@@ -194,18 +205,20 @@ exports.getRedis = function(key , callback) {
 };
 
 exports.setheartbeat = function(devId, timeout, data, callback) {
+	var devinfo = DeviceState1;
 	if (redis_connected) {
 		if(devId.length == 8) {
 			client.get(devId , function(err, result) {
 				if (err) {
 					console.log(err);
 				}
-					var src = result.Heartbeat;
-					result.Heartbeat = timeout;
-					result.Sensor = data;
-					client.set(devId, result);
-					console.log('Device Heartbeat Update [' + devId + ':(' + src + '->' + result.Heartbeat + ')]');
-					callback(result); 
+				devinfo = JSON.parse(result);
+				var src = devinfo.Heartbeat;
+				devinfo.Heartbeat = timeout;
+				devinfo.Sensor = data;
+				client.set(devId, devinfo);
+				console.log('Device Heartbeat Update [' + devId + ':(' + src + '->' + result.Heartbeat + ')]');
+				callback(devinfo); 
 			}); 
 		} else {
 			console.log("NOTFOUND");
