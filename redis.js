@@ -212,12 +212,11 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 				if (err) {
 					console.log(err);
 				}
-				devinfo = JSON.parse(result);
-				var src = devinfo.Heartbeat;
+				devinfo = result;
 				devinfo.Heartbeat = timeout;
 				devinfo.Sensor = data;
 				client.set(devId, devinfo);
-				console.log('Device Heartbeat Update [' + devId + ':(' + src + '->' + result.Heartbeat + ')]');
+				console.log('Device Heartbeat Update [' + devId + ':(' + '->' + result.Heartbeat + ')]');
 				callback(devinfo); 
 			}); 
 		} else {
