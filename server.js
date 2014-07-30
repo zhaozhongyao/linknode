@@ -73,6 +73,7 @@ var tcp_server = net.createServer(function(socket) {
 		//parse packet,find device id.
 		console.log(data.toString());
 		packet_heartbeat = JSON.parse(data);
+		console.log('length :%d',data.length);
 		console.log('id: %s',packet_heartbeat.id);
 		console.log('data: %s',packet_heartbeat.data);
 		//set device heartbeat counter to N(similer to TTL). mybe N = heartbeat_check_interval × 6
