@@ -148,8 +148,10 @@ exports.setRedis = function(devId, slotId , slotState , callback) {
 				if (err) {
 					console.log(err);
 				}
-				if (result.length >5 ){
-					devinfo = JSON.parse(result);
+				if(result !== null) {
+					if (result.length >5 ){
+						devinfo = JSON.parse(result);
+					}
 				}
 				replacePos(devinfo.State, slotId, slotState ,function(deviceState) {
 					
