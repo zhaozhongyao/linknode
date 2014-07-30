@@ -427,7 +427,7 @@
                         $("#online1_txt").html("OFFLINE");
                     }
                     $("#Heartbeat").html(json.Heartbeat);
-                    if(json.DeviceId !== "" && json.DeviceId !== undefined) {
+                    if((json.DeviceId !== "" && json.DeviceId !== undefined) || json.err == "uninit") {
                         document.getElementById("dev_no1").style.display="block";
                     } else {
                         NotBind1 = true;
