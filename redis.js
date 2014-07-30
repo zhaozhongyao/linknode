@@ -197,8 +197,21 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 				if (result.length >5 ){
 					devinfo = JSON.parse(result);
 				}
-				devinfo.Heartbeat = timeout;
-				devinfo.Sensor = data;
+				if (timeout > 0) {
+					devinfo.Heartbeat = timeout;
+				} else {
+					devinfo.Heartbeat = devinfo.Heartbeat + timeout;
+				}
+				
+				if (data !== null) {
+					devinfo.Sensor = data;
+				}
+				
+				if (devinfo.Heartbeat > 0) {
+					devinfo.IsOnline = true;
+				} else {
+					devinfo.IsOnline = false;
+				}
 				
 				client.set(devId, JSON.stringify(devinfo));
 				callback(JSON.stringify(devinfo)); 

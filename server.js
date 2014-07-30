@@ -23,6 +23,8 @@ var UserDelete = {
     "IsSuccess" : "false"
 };
 
+var online_list = new Array(0);
+
 var packet_heartbeat = {
     "id" : "",
     "data" : ""
@@ -47,11 +49,30 @@ var DeviceState = {
 	"Sensor" : ""
 };
 
+function online_list_add(devid) {
+    var dev = {"id" : ""};
+    var exist = false;
+    dev.id = devid;
+    
+    for(var i=0; i<online_list.length; i++) {
+        if (online_list[i].id == devid) {
+            exist = true;
+            break;
+        }
+    }
+    if(!exist) {
+        online_list.push(dev);
+    }
+    
+    console.log(online_list);
+}
+
 function heartbeatUpdate(id, timeout, data) {
 	console.log('id: %s',id);
 	console.log('data: %s',data);
 
 	data_obj.setheartbeat(id, timeout, data, function(temp) {
+	    online_list_add(id); 
 		//socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 		console.log(temp);
 	});
@@ -506,4 +527,24 @@ app.listen(httpport, function() {
     console.log('HTTP  listening on port :%d', httpport);
     console.log('Server started at :%s', moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss'));
     setInterval(heartbeat_timer,heartbeat_check_interval);
+    
+    //var dev = {"id" : ""};
+    //dev.id = "00000001";
+    //online_list.push(dev);
+    //console.log(online_list);
+    //console.log(online_list.length);
+    
+    //dev.id = "00000002";
+    //online_list.push(dev);
+    //dev.id = "00000003"; 
+    //online_list.push(dev);
+    
+    //online_list.splice(1, 1);
+    
+    //console.log(online_list);
+    //console.log(online_list.length);
+    
+    //for(var i=0; i<online_list.length; i++) {
+    //    console.log(online_list[i].id);
+    //}
 });
