@@ -71,11 +71,12 @@ var tcp_server = net.createServer(function(socket) {
 		//var message = clientName + '> ' + data.toString();
 		//broadcast(clientName, message);
 		//parse packet,find device id.
-		console.log(data.toString());
-		packet_heartbeat = JSON.parse(data);
-		console.log('length :%d',data.length);
-		console.log('id: %s',packet_heartbeat.id);
-		console.log('data: %s',packet_heartbeat.data);
+		if (data.length == 36) {
+    		packet_heartbeat = JSON.parse(data);
+    		console.log('length :%d',data.length);
+    		console.log('id: %s',packet_heartbeat.id);
+    		console.log('data: %s',packet_heartbeat.data);
+		}
 		//set device heartbeat counter to N(similer to TTL). mybe N = heartbeat_check_interval × 6
 	});
 	// When client leaves
