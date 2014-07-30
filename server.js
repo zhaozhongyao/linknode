@@ -110,10 +110,12 @@ var tcp_server = net.createServer(function(socket) {
 		//var message = clientName + '> ' + data.toString();
 		//broadcast(clientName, message);
 		//parse packet,find device id.
-		if (data.length > 20) {
-    		packet_heartbeat = JSON.parse(data);
-    		heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
-    		//console.log('length :%d',data.length);
+		if (data !== null) {
+    		if (data.length > 20) {
+        		packet_heartbeat = JSON.parse(data);
+        		heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
+        		//console.log('length :%d',data.length);
+    		}
 		}
 		//set device heartbeat counter to N(similer to TTL). mybe N = heartbeat_check_interval × 6
 	});
