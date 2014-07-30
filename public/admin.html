@@ -473,21 +473,21 @@
                     $("#IsSuccess").html(json2.IsSuccess);
                     $("#NSlots").html(json2.NSlots);
                     $("#State").html(json2.State);
-                    if(json.IsOnline) {
+                    if(json2.IsOnline) {
                         $("#IsOnline").html("Online");                    
                     } else {
                         $("#IsOnline").html("Offline");
                     }
-                    $("#Heartbeat").html(json.Heartbeat);
+                    $("#Heartbeat").html(json2.Heartbeat);
                     if(json2.DeviceId !== "" && json2.DeviceId !== undefined) {
                         document.getElementById("dev_no2").style.display="block";
                     } else {
-                        NotBind22 = true;
+                        NotBind2 = true;
                         if(NotBind1 === true && NotBind2 === true) {
                             document.getElementById("alert_bind").style.display="block";
                         }
                         return ;
-                  2  }
+                    }
                     if(json2.State[0] == '1') {
                         document.getElementById("2swon1").className = "btn btn-primary btn-sm"; 
                         document.getElementById("2swoff1").className = "btn btn-default btn-sm"; 
