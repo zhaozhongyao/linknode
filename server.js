@@ -526,7 +526,7 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
                                 res.send('');
                             }
                         } else {
-                            res.send('');
+                            res.send('{"err":"uninit"}');
                         }
                     });                   
                 } else {
