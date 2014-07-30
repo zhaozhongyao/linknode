@@ -88,6 +88,7 @@ function heartbeat_timer() {
             if (state.Heartbeat <= 0) {
                 online_list.splice(i, 1);
                 console.log('delete!');
+                console.log('pos :%d', i);
                 i--;
             }
             console.log(temp);
