@@ -101,7 +101,8 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <span class="glyphicon glyphicon-thumbs-up"></span>
-                            DeviceId: <a href="/panel/user"><span id="DeviceId">bind device</span></a>
+                            DeviceId: <a href="/panel/user"><span id="DeviceId">bind device</span></a> 
+                            <a id="online1" class="btn btn-danger btm-xs" ><span id="online1_txt">OFFLINE</span></a>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
@@ -182,6 +183,7 @@
                         <div class="panel-heading">
                             <span class="glyphicon glyphicon-thumbs-down"></span>
                             DeviceId: <a href="/panel/user"><span id="DeviceId2">bind device</span></a>
+                            <a id="online2" class="btn btn-danger btm-xs" >OFFLINE</a>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
@@ -416,9 +418,13 @@
                     $("#NSlots").html(json.NSlots);
                     $("#State").html(json.State);
                     if(json.IsOnline) {
-                        $("#IsOnline").html("Online");                    
+                        $("#IsOnline").html("Online");     
+                        document.getElementById("online1").className = "btn btn-success btm-xs"; 
+                        $("#online1_txt").html("ONLINE");
                     } else {
                         $("#IsOnline").html("Offline");
+                        document.getElementById("online1").className = "btn btn-danger btm-xs"; 
+                        $("#online1_txt").html("OFFLINE");
                     }
                     $("#Heartbeat").html(json.Heartbeat);
                     if(json.DeviceId !== "" && json.DeviceId !== undefined) {
@@ -474,9 +480,13 @@
                     $("#NSlots").html(json2.NSlots);
                     $("#State").html(json2.State);
                     if(json2.IsOnline) {
-                        $("#IsOnline").html("Online");                    
+                        $("#IsOnline").html("Online");   
+                        document.getElementById("online2").className = "btn btn-success btm-xs";
+                        $("#online2_txt").html("ONLINE");
                     } else {
                         $("#IsOnline").html("Offline");
+                        document.getElementById("online2").className = "btn btn-danger btm-xs";
+                        $("#online2_txt").html("OFFLINE");
                     }
                     $("#Heartbeat").html(json2.Heartbeat);
                     if(json2.DeviceId !== "" && json2.DeviceId !== undefined) {
