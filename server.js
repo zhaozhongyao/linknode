@@ -516,11 +516,15 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
                     //console.log(json_out.DEVICEID);
                     data_obj.getRedis(json_out.DeviceId , function(temp) {	
                         //console.log(temp);
-                        if(temp.length > 5) {
-                            json_out = JSON.parse(temp);
-                            //json_out.State = temp;
-                            //socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-                            res.send(JSON.stringify(json_out));
+                        if(temp !== null) {
+                            if(temp.length > 5) {
+                                json_out = JSON.parse(temp);
+                                //json_out.State = temp;
+                                //socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+                                res.send(JSON.stringify(json_out));
+                            } else {
+                                res.send('');
+                            }
                         } else {
                             res.send('');
                         }
