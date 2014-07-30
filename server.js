@@ -81,7 +81,8 @@ function heartbeat_timer() {
     console.log("heartbeating..");
     //online tree traversal.
     //and dicrease 1 heartbeat counter to every online device.
-    for(var i=0; i<online_list.length; i++) {
+    var length = online_list.length;
+    for(var i=0; i<length; i++) {
         data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
             state = JSON.parse(temp);
             if (state.Heartbeat === 0) {
