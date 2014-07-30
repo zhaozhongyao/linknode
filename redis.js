@@ -6,13 +6,11 @@ var client = redis.createClient(db_port,process.env.IP);
 
 var DeviceState1 = {
 	"DeviceId"  : "00000000",
-	"IsSuccess" : true,
 	"NSlots"    : 5,
 	"State"     : "00000",
 	"IsOnline"  : false,
 	"Heartbeat" : 0,
-	"Sensor" : "",
-	"ServerTime": "2014-5-19 14:47:56"
+	"Sensor" : ""
 };
 
 client.on("error", function (err) {
@@ -141,48 +139,32 @@ exports.bindRedis = function(FromUserName, deviceId , callback) {
 		callback("DB_ERR");
 	}
 };
- 
-exports.setRedis = function(devId, userId, slotId , slotState , callback) {
+
+exports.setRedis = function(devId, slotId , slotState , callback) {
+	var devinfo = DeviceState1;
 	if (redis_connected) {
-		if(devId === null) {
-			client.get(userId, function(err, deviceId) {
+		if(devId.length == 8) {
+			client.get(devId , function(err, result) {
 				if (err) {
 					console.log(err);
 				}
-				if (deviceId === null) {
-					console.log("NOTFOUND");
-					callback("NOTFOUND"); 
-				} else {
-					if(deviceId.length == 8) {
-						client.get(deviceId , function(err, result) {
-							if (err) {
-								console.log(err);
-							}
-							replacePos(result, slotId, slotState ,function(deviceState) {
-								client.set(deviceId, deviceState);
-								console.log('Device State Update [' + deviceId + ':(' + result + '->' + deviceState + ')]');
-								callback(deviceState); 
-							});
-						}); 
-					}
+				if (result.length >5 ){
+					devinfo = JSON.parse(result);
 				}
+				replacePos(devinfo.State, slotId, slotState ,function(deviceState) {
+					
+					devinfo.DeviceId = devId;
+					devinfo.NSlots = 5;
+					devinfo.State = deviceState;
+					
+					client.set(devId, JSON.stringify(devinfo));
+					console.log('Device State Update [' + result + '->' + deviceState + ']');
+					callback(JSON.stringify(devinfo)); 
+				});
 			}); 
 		} else {
-			if(devId.length == 8) {
-				client.get(devId , function(err, result) {
-					if (err) {
-						console.log(err);
-					}
-					replacePos(result, slotId, slotState ,function(deviceState) {
-						client.set(devId, deviceState);
-						console.log('Device State Update [' + devId + ':(' + result + '->' + deviceState + ')]');
-						callback(deviceState); 
-					});
-				}); 
-			} else {
-				console.log("NOTFOUND");
-				callback("NOTFOUND"); 
-			}
+			console.log("NOTFOUND");
+			callback("NOTFOUND"); 
 		}
 	} else {
 		console.log("Error :Redis not connected!");
@@ -212,15 +194,15 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 				if (err) {
 					console.log(err);
 				}
-				devinfo = result;
+				if (result.length >5 ){
+					devinfo = JSON.parse(result);
+				}
 				devinfo.Heartbeat = timeout;
 				devinfo.Sensor = data;
-				client.set(devId, devinfo);
-				console.log('Device Heartbeat Update [' + devId + ':(' + '->' + result.Heartbeat + ')]');
 				
-				console.log(result);callback(devinfo); 
-			
-				console.log(devinfo);}); 
+				client.set(devId, JSON.stringify(devinfo));
+				callback(JSON.stringify(devinfo)); 
+			}); 
 		} else {
 			console.log("NOTFOUND");
 			callback("NOTFOUND"); 

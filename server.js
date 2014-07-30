@@ -40,26 +40,20 @@ var Users = {
 
 var DeviceState = {
 	"DeviceId"  : "00000000",
-	"IsSuccess" : true,
 	"NSlots"    : 5,
 	"State"     : "00000",
 	"IsOnline"  : false,
 	"Heartbeat" : 0,
-	"Sensor" : "",
-	"ServerTime": "2014-5-19 14:47:56"
+	"Sensor" : ""
 };
 
 function heartbeatUpdate(id, timeout, data) {
 	console.log('id: %s',id);
 	console.log('data: %s',data);
-	
-	var json_out = DeviceState;
-	json_out.DeviceId = id;
-	json_out.ServerTime = moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss');
 
 	data_obj.setheartbeat(id, timeout, data, function(temp) {
 		//socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-		console.log(JSON.stringify(temp));
+		console.log(temp);
 	});
 }
 
@@ -445,27 +439,6 @@ app.get("/bind/:num/:id", restrict, function(req, res) {
 	}
 });
 
-app.get("/device/:id/:slot?/:operation?" , function(req, res) {
-	var json_out = DeviceState;
-	json_out.DeviceId = req.params.id;
-	json_out.ServerTime = moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss');
-	if (req.params.operation !== undefined) {
-		data_obj.setRedis(req.params.id, null, req.params.slot, req.params.operation, function(temp) {
-			json_out.State = temp;
-			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-			res.send(JSON.stringify(json_out));
-		});
-	}
-	else {
-		data_obj.getRedis(req.params.id , function(temp) {			
-			json_out.State = temp;			
-			socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-			res.send(JSON.stringify(json_out));
-		});
-	}
-});
-
-
 app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
 	var json_out = DeviceState;
     var userinfo = Users;
@@ -483,8 +456,10 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
                     if (req.params.num == "2") {
                         json_out.DeviceId = userinfo.DEVICEID2;
                     }
-                    data_obj.setRedis(json_out.DeviceId, null, req.params.slot, req.params.operation, function(temp) {
-                        json_out.State = temp;
+                    data_obj.setRedis(json_out.DeviceId, req.params.slot, req.params.operation, function(temp) {
+                        //json_out.State = temp;
+                        //console.log(temp);
+                        json_out = JSON.parse(temp);
                         socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
                         res.send(JSON.stringify(json_out));
                     });                    
@@ -493,8 +468,7 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
                 }
             }
         });
-	}
-	else {
+	} else {
         data_obj.UserQuery(req.session.user, function(temp) {
             if (temp === null) {
                 console.log("cannot find user");
@@ -508,10 +482,16 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
                         json_out.DeviceId = userinfo.DEVICEID2;
                     }
                     //console.log(json_out.DEVICEID);
-                    data_obj.getRedis(json_out.DeviceId , function(temp) {			
-                        json_out.State = temp;
-                        //socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-                        res.send(JSON.stringify(json_out));
+                    data_obj.getRedis(json_out.DeviceId , function(temp) {	
+                        //console.log(temp);
+                        if(temp.length > 5) {
+                            json_out = JSON.parse(temp);
+                            //json_out.State = temp;
+                            //socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+                            res.send(JSON.stringify(json_out));
+                        } else {
+                            res.send('');
+                        }
                     });                   
                 } else {
                     res.send(ERR_NULL_ID);
