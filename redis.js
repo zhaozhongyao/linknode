@@ -194,27 +194,28 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 				if (err) {
 					console.log(err);
 				}
-				if (result.length >5 ){
-					devinfo = JSON.parse(result);
-				}
-				if (timeout > 0) {
-					devinfo.Heartbeat = timeout;
-				} else {
+				if (result !== null) {
+					if (result.length >5 ){
+						devinfo = JSON.parse(result);
+					}
+					if (timeout > 0) {
+						devinfo.Heartbeat = timeout;
+					} else {
+						if (devinfo.Heartbeat > 0) {
+							devinfo.Heartbeat = devinfo.Heartbeat + timeout;
+						}
+					}
+					
+					if (data !== null) {
+						devinfo.Sensor = data;
+					}
+					
 					if (devinfo.Heartbeat > 0) {
-						devinfo.Heartbeat = devinfo.Heartbeat + timeout;
+						devinfo.IsOnline = true;
+					} else {
+						devinfo.IsOnline = false;
 					}
 				}
-				
-				if (data !== null) {
-					devinfo.Sensor = data;
-				}
-				
-				if (devinfo.Heartbeat > 0) {
-					devinfo.IsOnline = true;
-				} else {
-					devinfo.IsOnline = false;
-				}
-				
 				client.set(devId, JSON.stringify(devinfo));
 				callback(JSON.stringify(devinfo)); 
 			}); 
