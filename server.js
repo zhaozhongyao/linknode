@@ -66,19 +66,17 @@ function online_list_add(devid) {
 }
 
 function heartbeatUpdate(id, timeout, data) {
-	console.log('id: %s',id);
-	console.log('data: %s',data);
     //{"id":"00000001","data":"haha"}
 	data_obj.setheartbeat(id, timeout, data, function(temp) {
 	    online_list_add(id); 
 		//socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-		console.log(temp);
+		//console.log(temp);
 	});
 }
 
 function heartbeat_timer() {
     var state = DeviceState;
-    console.log("heartbeating..");
+    console.log("...Begin of Online List...");
     //online tree traversal.
     //and dicrease 1 heartbeat counter to every online device.
     var length = online_list.length;
@@ -87,14 +85,12 @@ function heartbeat_timer() {
             state = JSON.parse(temp);
             if (state.Heartbeat <= 0) {
                 online_list.splice(i-1, 1);
-                console.log('delete!');
-                console.log('pos :%d', i);
                 i--;
             }
-            console.log(temp);
         });
     }
     console.log(online_list);
+    console.log("....End of Online List....");
 }
 
 var tcp_server = net.createServer(function(socket) {
@@ -117,7 +113,7 @@ var tcp_server = net.createServer(function(socket) {
 		if (data.length > 20) {
     		packet_heartbeat = JSON.parse(data);
     		heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
-    		console.log('length :%d',data.length);
+    		//console.log('length :%d',data.length);
 		}
 		//set device heartbeat counter to N(similer to TTL). mybe N = heartbeat_check_interval × 6
 	});
