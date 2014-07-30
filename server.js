@@ -68,7 +68,7 @@ function online_list_add(devid) {
 function heartbeatUpdate(id, timeout, data) {
 	console.log('id: %s',id);
 	console.log('data: %s',data);
-
+    //{"id":"00000001","data":"haha"}
 	data_obj.setheartbeat(id, timeout, data, function(temp) {
 	    online_list_add(id); 
 		//socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
@@ -85,8 +85,9 @@ function heartbeat_timer() {
     for(var i=0; i<length; i++) {
         data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
             state = JSON.parse(temp);
-            if (state.Heartbeat === 0) {
+            if (state.Heartbeat <= 0) {
                 online_list.splice(i, 1);
+                console.log('delete!');
                 i--;
             }
             console.log(temp);

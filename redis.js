@@ -200,7 +200,9 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 				if (timeout > 0) {
 					devinfo.Heartbeat = timeout;
 				} else {
-					devinfo.Heartbeat = devinfo.Heartbeat + timeout;
+					if (devinfo.Heartbeat > 0) {
+						devinfo.Heartbeat = devinfo.Heartbeat + timeout;
+					}
 				}
 				
 				if (data !== null) {
