@@ -63,8 +63,6 @@ function online_list_add(devid) {
     if(!exist) {
         online_list.push(dev);
     }
-    
-    console.log(online_list);
 }
 
 function heartbeatUpdate(id, timeout, data) {
@@ -79,14 +77,21 @@ function heartbeatUpdate(id, timeout, data) {
 }
 
 function heartbeat_timer() {
+    var state = DeviceState;
     console.log("heartbeating..");
     //online tree traversal.
     //and dicrease 1 heartbeat counter to every online device.
     for(var i=0; i<online_list.length; i++) {
         data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
-            console.log(JSON.stringify(temp));
+            state = JSON.parse(temp);
+            if (state.Heartbeat === 0) {
+                online_list.splice(i, 1);
+                i--;
+            }
+            console.log(temp);
         });
     }
+    console.log(online_list);
 }
 
 var tcp_server = net.createServer(function(socket) {
