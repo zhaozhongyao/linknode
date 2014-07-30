@@ -217,8 +217,10 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 				devinfo.Sensor = data;
 				client.set(devId, devinfo);
 				console.log('Device Heartbeat Update [' + devId + ':(' + '->' + result.Heartbeat + ')]');
-				callback(devinfo); 
-			}); 
+				
+				console.log(result);callback(devinfo); 
+			
+				console.log(devinfo);}); 
 		} else {
 			console.log("NOTFOUND");
 			callback("NOTFOUND"); 
