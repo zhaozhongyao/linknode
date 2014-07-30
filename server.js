@@ -79,9 +79,14 @@ function heartbeatUpdate(id, timeout, data) {
 }
 
 function heartbeat_timer() {
-    //console.log("heartbeating..");
+    console.log("heartbeating..");
     //online tree traversal.
     //and dicrease 1 heartbeat counter to every online device.
+    for(var i=0; i<online_list.length; i++) {
+        data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
+            console.log(JSON.stringify(temp));
+        });
+    }
 }
 
 var tcp_server = net.createServer(function(socket) {
