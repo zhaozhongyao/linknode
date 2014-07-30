@@ -86,7 +86,7 @@ function heartbeat_timer() {
         data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
             state = JSON.parse(temp);
             if (state.Heartbeat <= 0) {
-                online_list.splice(i, 1);
+                online_list.splice(i-1, 1);
                 console.log('delete!');
                 console.log('pos :%d', i);
                 i--;
