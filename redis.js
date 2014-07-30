@@ -192,3 +192,27 @@ exports.getRedis = function(key , callback) {
 		callback("DB_ERR");
 	}
 };
+
+exports.setheartbeat = function(devId, timeout, data, callback) {
+	if (redis_connected) {
+		if(devId.length == 8) {
+			client.get(devId , function(err, result) {
+				if (err) {
+					console.log(err);
+				}
+					var src = result.Heartbeat;
+					result.Heartbeat = timeout;
+					result.Sensor = data;
+					client.set(devId, result);
+					console.log('Device Heartbeat Update [' + devId + ':(' + src + '->' + result.Heartbeat + ')]');
+					callback(result); 
+			}); 
+		} else {
+			console.log("NOTFOUND");
+			callback("NOTFOUND"); 
+		}
+	} else {
+		console.log("Error :Redis not connected!");
+		callback("DB_ERR");
+	}
+};

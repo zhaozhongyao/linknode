@@ -45,8 +45,23 @@ var DeviceState = {
 	"State"     : "00000",
 	"IsOnline"  : false,
 	"Heartbeat" : 0,
+	"Sensor" : "",
 	"ServerTime": "2014-5-19 14:47:56"
 };
+
+function heartbeatUpdate(id, timeout, data) {
+	console.log('id: %s',id);
+	console.log('data: %s',data);
+	
+	var json_out = DeviceState;
+	json_out.DeviceId = id;
+	json_out.ServerTime = moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss');
+
+	data_obj.setheartbeat(id, timeout, data, function(temp) {
+		//socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+		console.log(JSON.stringify(temp));
+	});
+}
 
 function heartbeat_timer() {
     //console.log("heartbeating..");
@@ -71,11 +86,10 @@ var tcp_server = net.createServer(function(socket) {
 		//var message = clientName + '> ' + data.toString();
 		//broadcast(clientName, message);
 		//parse packet,find device id.
-		if (data.length == 36) {
+		if (data.length > 20) {
     		packet_heartbeat = JSON.parse(data);
+    		heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
     		console.log('length :%d',data.length);
-    		console.log('id: %s',packet_heartbeat.id);
-    		console.log('data: %s',packet_heartbeat.data);
 		}
 		//set device heartbeat counter to N(similer to TTL). mybe N = heartbeat_check_interval × 6
 	});
