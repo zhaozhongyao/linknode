@@ -54,33 +54,31 @@ function online_list_add(devid) {
     var exist = false;
     dev.id = devid;
     //get online list array form redis.
-    
     data_obj.loadOnlinelist(function(list) {
         online_list = JSON.parse(list);
-    });
-    
-    for(var i=0; i<online_list.length; i++) {
-        if (online_list[i].id == devid) {
-            exist = true;
-            break;
-        }
-    }
-    if(!exist) {
-        online_list.push(dev);
-        data_obj.saveOnlinelist(JSON.stringify(online_list));
-        //save online list array to redis.
-        //send this device states.
-        data_obj.getRedis(devid, function(temp) {	
-            //console.log(temp);
-            if(temp !== null) {
-                if(temp.length > 5) {
-                    var json_out = DeviceState;
-                    json_out = JSON.parse(temp);
-                    socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
-                }
+        for(var i=0; i<online_list.length; i++) {
+            if (online_list[i].id == devid) {
+                exist = true;
+                break;
             }
-        });         
-    }
+        }
+        if(!exist) {
+            online_list.push(dev);
+            data_obj.saveOnlinelist(JSON.stringify(online_list));
+            //save online list array to redis.
+            //send this device states.
+            data_obj.getRedis(devid, function(temp) {	
+                //console.log(temp);
+                if(temp !== null) {
+                    if(temp.length > 5) {
+                        var json_out = DeviceState;
+                        json_out = JSON.parse(temp);
+                        socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+                    }
+                }
+            });         
+        }
+    });
 }
 
 function heartbeatUpdate(id, timeout, data) {
