@@ -191,40 +191,59 @@ exports.getRedis = function(key , callback) {
 exports.setheartbeat = function(devId, timeout, data, callback) {
 	var devinfo = DeviceState1;
 	if (redis_connected) {
-		if(devId.length == 8) {
-			client.get(devId , function(err, result) {
-				if (err) {
-					console.log(err);
+		client.get(devId , function(err, result) {
+			if (err) {
+				console.log(err);
+			}
+			if (result !== null) {
+				if (result.length >5 ){
+					devinfo = JSON.parse(result);
 				}
-				if (result !== null) {
-					if (result.length >5 ){
-						devinfo = JSON.parse(result);
-					}
-					if (timeout > 0) {
-						devinfo.Heartbeat = timeout;
-					} else {
-						if (devinfo.Heartbeat > 0) {
-							devinfo.Heartbeat = devinfo.Heartbeat + timeout;
-						}
-					}
-					
-					if (data !== null) {
-						devinfo.Sensor = data;
-					}
-					
+				if (timeout > 0) {
+					devinfo.Heartbeat = timeout;
+				} else {
 					if (devinfo.Heartbeat > 0) {
-						devinfo.IsOnline = true;
-					} else {
-						devinfo.IsOnline = false;
+						devinfo.Heartbeat = devinfo.Heartbeat + timeout;
 					}
 				}
-				client.set(devId, JSON.stringify(devinfo));
-				callback(JSON.stringify(devinfo)); 
-			}); 
-		} else {
-			console.log("NOTFOUND");
-			callback("NOTFOUND"); 
-		}
+				
+				if (data !== null) {
+					devinfo.Sensor = data;
+				}
+				
+				if (devinfo.Heartbeat > 0) {
+					devinfo.IsOnline = true;
+				} else {
+					devinfo.IsOnline = false;
+				}
+			}
+			client.set(devId, JSON.stringify(devinfo));
+			callback(JSON.stringify(devinfo)); 
+		}); 
+	} else {
+		console.log("Error :Redis not connected!");
+		callback("DB_ERR");
+	}
+};
+
+exports.saveOnlinelist = function(ListArray) {
+	if (redis_connected) {
+		client.set("OnlineList", ListArray);
+		console.log('Save Onlinelist to Redis.');
+	} else {
+		console.log("Error :Redis not connected!");
+	}
+};
+
+exports.loadOnlinelist = function(callback) {
+	if (redis_connected) {
+		client.get("OnlineList", function(err, value) {
+			if (err) {
+				console.log(err);   
+			}
+        	console.log('Load OnlineList form Redis:');
+			callback(value); 
+		});  
 	} else {
 		console.log("Error :Redis not connected!");
 		callback("DB_ERR");

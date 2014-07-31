@@ -53,6 +53,12 @@ function online_list_add(devid) {
     var dev = {"id" : ""};
     var exist = false;
     dev.id = devid;
+    //get online list array form redis.
+    
+    data_obj.loadOnlinelist(function(list) {
+        online_list = list;
+        console.log(online_list);
+    });
     
     for(var i=0; i<online_list.length; i++) {
         if (online_list[i].id == devid) {
@@ -62,6 +68,10 @@ function online_list_add(devid) {
     }
     if(!exist) {
         online_list.push(dev);
+        data_obj.saveOnlinelist(online_list);
+        //save online list array to redis.
+        
+        //send this device states.
     }
 }
 
@@ -75,22 +85,29 @@ function heartbeatUpdate(id, timeout, data) {
 }
 
 function heartbeat_timer() {
+    var length;
     var state = DeviceState;
-    console.log("...Begin of Online List...");
-    //online tree traversal.
-    //and dicrease 1 heartbeat counter to every online device.
-    var length = online_list.length;
-    for(var i=0; i<length; i++) {
-        data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
-            state = JSON.parse(temp);
-            if (state.Heartbeat <= 0) {
-                online_list.splice(i-1, 1);
-                i--;
-            }
-        });
+    if (online_list !== null) {
+        length = online_list.length;
+        console.log("...Begin of Online List...");
+        //online tree traversal.
+        //and dicrease 1 heartbeat counter to every online device.
+        for(var i=0; i<length; i++) {
+            data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
+                state = JSON.parse(temp);
+                if (state.Heartbeat <= 0) {
+                    online_list.splice(i-1, 1);
+                    data_obj.saveOnlinelist(online_list);
+                    //save online list array to redis.
+                    i--;
+                }
+            });
+        }
+        console.log(online_list);
+        console.log("....End of Online List....");
+    } else {
+        console.log('....None online device....');
     }
-    console.log(online_list);
-    console.log("....End of Online List....");
 }
 
 var tcp_server = net.createServer(function(socket) {
@@ -541,6 +558,9 @@ app.get("/api/device/:num/:slot?/:operation?", restrict, function(req, res) {
 app.listen(httpport, function() {
     console.log('HTTP  listening on port :%d', httpport);
     console.log('Server started at :%s', moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss'));
+    
+
+    //get online list array form redis.
     setInterval(heartbeat_timer,heartbeat_check_interval);
     
     //var dev = {"id" : ""};
