@@ -237,7 +237,7 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 				console.log(err);
 			}
 			if (result !== null) {
-				if (result.length >5 ){
+				if (result.length > 5){
 					devinfo = JSON.parse(result);
 				}
 				if (timeout > 0) {
@@ -247,18 +247,17 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 						devinfo.Heartbeat = devinfo.Heartbeat + timeout;
 					}
 				}
-				
 				if (data !== null) {
 					devinfo.Sensor = data;
 				}
-				
 				if (devinfo.Heartbeat > 0) {
 					devinfo.IsOnline = true;
 				} else {
 					devinfo.IsOnline = false;
 				}
+				client.set(devId, JSON.stringify(devinfo));
+				callback(JSON.stringify(devinfo)); 
 			}
-			client.set(devId, JSON.stringify(devinfo));
 			callback(JSON.stringify(devinfo)); 
 		}); 
 	} else {
