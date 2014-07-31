@@ -174,6 +174,47 @@ exports.setRedis = function(devId, slotId , slotState , callback) {
 	}
 };
 
+exports.WechatSetRedis = function(devId, userId, slotId , slotState , callback) {
+	var devinfo = DeviceState1;
+ 	if (redis_connected) {
+ 		if(devId === null) {
+ 			client.get(userId, function(err, deviceId) {
+ 				if (err) {
+ 					console.log(err);
+ 				}
+ 				if (deviceId === null) {
+ 					console.log("NOTFOUND");
+ 					callback("NOTFOUND"); 
+ 				} else {
+ 					if(deviceId.length == 8) {
+ 						client.get(deviceId , function(err, result) {
+ 							if (err) {
+ 								console.log(err);
+ 							}
+ 							if(result !== null) {
+								if (result.length >5 ){
+									devinfo = JSON.parse(result);
+								}
+							}
+							replacePos(devinfo.State, slotId, slotState ,function(deviceState) {
+								devinfo.DeviceId = deviceId;
+								devinfo.NSlots = 5;
+								devinfo.State = deviceState;
+								
+								client.set(deviceId, JSON.stringify(devinfo));
+								console.log('Device State Update [' + result + '->' + deviceState + ']');
+								callback(devinfo.State); 
+							});
+ 						}); 
+ 					}
+ 				}
+ 			}); 
+ 		}
+ 	} else {
+ 		console.log("Error :Redis not connected!");
+ 		callback("DB_ERR");
+ 	}
+ };
 exports.getRedis = function(key , callback) {
 	if (redis_connected) {
 		client.get(key, function(err, value) {

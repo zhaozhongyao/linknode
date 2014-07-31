@@ -18,7 +18,7 @@ exports.validateToken = function(req, res) {
     var echostr = query.echostr;
     var timestamp = query['timestamp'];
     var nonce = query.nonce;
-    var oriArray = new Array();
+    var oriArray = new Array(0);
     oriArray[0] = nonce;
     oriArray[1] = timestamp;
     oriArray[2] = "414cf5d02e";// your token
@@ -119,7 +119,7 @@ function processMessage(data, res){
 					});
 				}
 			} else if(Content.indexOf("打开台灯") != -1) {
-				data_obj.setRedis(null, FromUserName, 5, 1, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 5, 1, function(temp){
 					json_out.State = temp;
 					//console.log("temp.length " + temp.length );
 					if(temp.length == 5) {
@@ -133,7 +133,7 @@ function processMessage(data, res){
 					}
 				});
 			} else if(Content.indexOf("关闭台灯") != -1) {
-				data_obj.setRedis(null, FromUserName, 5, 0, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 5, 0, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
@@ -141,7 +141,7 @@ function processMessage(data, res){
 					});
 				});
 			} else if(Content.indexOf("打开音箱") != -1) {
-				data_obj.setRedis(null, FromUserName, 4, 1, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 4, 1, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
@@ -149,7 +149,7 @@ function processMessage(data, res){
 					});
 				});
 			} else if(Content.indexOf("关闭音箱") != -1) {
-				data_obj.setRedis(null, FromUserName, 4, 0, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 4, 0, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
@@ -157,7 +157,7 @@ function processMessage(data, res){
 					});
 				});
 			} else if(Content.indexOf("打开苹果充电器") != -1) {
-				data_obj.setRedis(null, FromUserName, 3, 1, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 3, 1, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
@@ -165,7 +165,7 @@ function processMessage(data, res){
 					});
 				});
 			} else if(Content.indexOf("关闭苹果充电器") != -1) {
-				data_obj.setRedis(null, FromUserName, 3, 0, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 3, 0, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
@@ -173,7 +173,7 @@ function processMessage(data, res){
 					});
 				});
 			} else if(Content.indexOf("打开安卓充电器") != -1) {
-				data_obj.setRedis(null, FromUserName, 2, 1, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 2, 1, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
@@ -181,7 +181,7 @@ function processMessage(data, res){
 					});
 				});
 			} else if(Content.indexOf("关闭安卓充电器") != -1) {
-				data_obj.setRedis(null, FromUserName, 2, 0, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 2, 0, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
@@ -189,7 +189,7 @@ function processMessage(data, res){
 					});
 				});
 			} else if(Content.indexOf("打开树莓派") != -1) {
-				data_obj.setRedis(null, FromUserName, 1, 1, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 1, 1, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
@@ -197,7 +197,7 @@ function processMessage(data, res){
 					});
 				});
 			} else if(Content.indexOf("关闭树莓派") != -1) {
-				data_obj.setRedis(null, FromUserName, 1, 0, function(temp){
+				data_obj.WechatSetRedis(null, FromUserName, 1, 0, function(temp){
 					json_out.State = temp;
 					data_obj.getRedis(FromUserName , function(temp1){
 						json_out.DeviceId = temp1;
