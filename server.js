@@ -56,7 +56,7 @@ function online_list_add(devid) {
     //get online list array form redis.
     
     data_obj.loadOnlinelist(function(list) {
-        online_list = list;
+        online_list = JSON.parse(list);
         console.log(online_list);
     });
     
@@ -68,7 +68,7 @@ function online_list_add(devid) {
     }
     if(!exist) {
         online_list.push(dev);
-        data_obj.saveOnlinelist(online_list);
+        data_obj.saveOnlinelist(JSON.stringify(online_list));
         //save online list array to redis.
         
         //send this device states.
@@ -97,7 +97,7 @@ function heartbeat_timer() {
                 state = JSON.parse(temp);
                 if (state.Heartbeat <= 0) {
                     online_list.splice(i-1, 1);
-                    data_obj.saveOnlinelist(online_list);
+                    data_obj.saveOnlinelist(JSON.stringify(online_list));
                     //save online list array to redis.
                     i--;
                 }
