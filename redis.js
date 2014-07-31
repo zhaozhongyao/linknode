@@ -229,7 +229,7 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 exports.saveOnlinelist = function(ListArray) {
 	if (redis_connected) {
 		client.set("OnlineList", ListArray);
-		console.log('Save Onlinelist to Redis.');
+		//console.log('Save Onlinelist to Redis.');
 	} else {
 		console.log("Error :Redis not connected!");
 	}
