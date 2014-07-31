@@ -241,7 +241,6 @@ exports.loadOnlinelist = function(callback) {
 			if (err) {
 				console.log(err);   
 			}
-        	console.log('Load OnlineList form Redis:');
 			callback(value); 
 		});  
 	} else {

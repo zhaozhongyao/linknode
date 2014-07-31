@@ -57,7 +57,6 @@ function online_list_add(devid) {
     
     data_obj.loadOnlinelist(function(list) {
         online_list = JSON.parse(list);
-        console.log(online_list);
     });
     
     for(var i=0; i<online_list.length; i++) {
@@ -70,8 +69,17 @@ function online_list_add(devid) {
         online_list.push(dev);
         data_obj.saveOnlinelist(JSON.stringify(online_list));
         //save online list array to redis.
-        
         //send this device states.
+        data_obj.getRedis(devid, function(temp) {	
+            //console.log(temp);
+            if(temp !== null) {
+                if(temp.length > 5) {
+                    var json_out = DeviceState;
+                    json_out = JSON.parse(temp);
+                    socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
+                }
+            }
+        });         
     }
 }
 
