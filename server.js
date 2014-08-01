@@ -28,7 +28,7 @@ var online_list = new Array(0);
 var packet_heartbeat = {
     "id" : "",
     "data" : ""
-}
+};
 
 var Users = {
 	"USERNAME"  : "",
@@ -84,7 +84,7 @@ function online_list_add(devid) {
 function heartbeatUpdate(id, timeout, data) {
     //{"id":"00000001","data":"haha"}
 	data_obj.setheartbeat(id, timeout, data, function(temp) {
-	    online_list_add(id); 
+        online_list_add(id); 
 		//socket_obj.broadcast('SYSTEM',JSON.stringify(json_out) + '\n');
 		//console.log(temp);
 	});
@@ -101,7 +101,7 @@ function heartbeat_timer() {
         for(var i=0; i<length; i++) {
             data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
                 state = JSON.parse(temp);
-                if (state.Heartbeat == 0) {
+                if (state.Heartbeat === 0) {
                     online_list.splice(i - 1, 1);
                     data_obj.saveOnlinelist(JSON.stringify(online_list));
                     //save online list array to redis.
@@ -134,11 +134,11 @@ var tcp_server = net.createServer(function(socket) {
 		//broadcast(clientName, message);
 		//parse packet,find device id.
 		if (data !== null) {
-    		if (data.length > 20) {
-        		packet_heartbeat = JSON.parse(data);
-        		heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
-        		//console.log('length :%d',data.length);
-    		}
+            if (data.length > 20) {
+                packet_heartbeat = JSON.parse(data);
+                heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
+                //console.log('length :%d',data.length);
+            }
 		}
 		//set device heartbeat counter to N(similer to TTL). mybe N = heartbeat_check_interval × 6
 	});
@@ -196,7 +196,7 @@ function authenticate(name, pass, fn) {
 			console.log("cannot find user");
 			return fn(new Error('cannot find user'));
 		} else if (temp == "DB_ERR") {
-		    console.log("DB_ERROR");
+            console.log("DB_ERROR");
 			return fn(new Error('DB_ERROR'));
 		} else {
             userinfo = JSON.parse(temp);
