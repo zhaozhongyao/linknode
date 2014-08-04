@@ -99,6 +99,7 @@ function heartbeat_timer() {
         for(var i = 0; i < online_list.length; i ++) {
             data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
                 state = JSON.parse(temp);
+				console.log(online_list.length);
 				console.log(state);
                 if (state.Heartbeat === 0) {
 					console.log('!!!heartbeat == 0!!!');
