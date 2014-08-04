@@ -94,25 +94,27 @@ function heartbeatUpdate(id, timeout, data) {
 function heartbeat_timer() {
     var state = DeviceState;
     var i;
-    if (online_list !== null) {
+    var list_changed = false;
+    if (online_list !== null && online_list !== '') {
         console.log("...Begin of Online List...");
         //online tree traversal.
         //and dicrease 1 heartbeat counter to every online device.
         for (i = online_list.length - 1; i >= 0; i--) { 
             (function (i) {
-                console.log(i);
                 data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
                     state = JSON.parse(temp);
 				    if (state.Heartbeat === 0) {
-           		        console.log('!!!heartbeat == 0!!! ,i = %d', i);
-            		    console.log(state);
+           		        console.log('!!!device %s offline!!!', online_list[i].id);
+            		    //console.log(state);
             		    online_list.splice(i, 1);
+            		    list_changed = true;
             	    }
                 });
             })(i); 
         } 
-　　    
-        data_obj.saveOnlinelist(JSON.stringify(online_list));
+　　    if(list_changed == true) {
+            data_obj.saveOnlinelist(JSON.stringify(online_list));
+　　    }
         //for(i = 0; i < online_list.length; i ++) {
         //    data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
         //        state = JSON.parse(temp);
