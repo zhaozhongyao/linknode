@@ -12,7 +12,7 @@ var httpport = 8080;
 var port = 30059;
 var guestId = 0;
 var timezone = -8;
-var heartbeat_check_interval = 1000 * 30;
+var heartbeat_check_interval = 1000 * 15;
 
 var data_obj = require('./redis.js');
 var socket_obj = require('./socket.js');
@@ -106,13 +106,13 @@ function heartbeat_timer() {
            		        console.log('!!!heartbeat == 0!!! ,i = %d', i);
             		    console.log(state);
             		    online_list.splice(i, 1);
-            		    data_obj.saveOnlinelist(JSON.stringify(online_list));
             		    i = 0;
             	    }
                 });
             })(i); 
         } 
-　　
+　　    
+        data_obj.saveOnlinelist(JSON.stringify(online_list));
         //for(i = 0; i < online_list.length; i ++) {
         //    data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
         //        state = JSON.parse(temp);
