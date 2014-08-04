@@ -102,7 +102,7 @@ function heartbeat_timer() {
 				console.log(online_list.length);
 				console.log(state);
                 if (state.Heartbeat === 0) {
-					console.log('!!!heartbeat == 0!!!');
+					console.log('!!!heartbeat == 0!!! ,i = %d', i);
 					console.log(state);
                     online_list.splice(i, 1);
                     data_obj.saveOnlinelist(JSON.stringify(online_list));
