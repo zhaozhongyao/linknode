@@ -12,7 +12,7 @@ var httpport = 8080;
 var port = 30059;
 var guestId = 0;
 var timezone = -8;
-var heartbeat_check_interval = 1000 * 15;
+var heartbeat_check_interval = 1000 * 30;
 
 var data_obj = require('./redis.js');
 var socket_obj = require('./socket.js');
@@ -119,7 +119,7 @@ function heartbeat_timer() {
             console.log(online_list);
             console.log("....End of Online List....");
         } else {
-            console.log('....None online device....');
+            //console.log('....None online device....');
         }
     }
 }
@@ -573,27 +573,6 @@ app.listen(httpport, function() {
     console.log('HTTP  listening on port :%d', httpport);
     console.log('Server started at :%s', moment().zone(timezone).format('YYYY-MM-DD, HH:mm:ss'));
     
-
     //get online list array form redis.
     setInterval(heartbeat_timer,heartbeat_check_interval);
-    
-    //var dev = {"id" : ""};
-    //dev.id = "00000001";
-    //online_list.push(dev);
-    //console.log(online_list);
-    //console.log(online_list.length);
-    
-    //dev.id = "00000002";
-    //online_list.push(dev);
-    //dev.id = "00000003"; 
-    //online_list.push(dev);
-    
-    //online_list.splice(1, 1);
-    
-    //console.log(online_list);
-    //console.log(online_list.length);
-    
-    //for(var i=0; i<online_list.length; i++) {
-    //    console.log(online_list[i].id);
-    //}
 });
