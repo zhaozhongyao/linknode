@@ -99,7 +99,10 @@ function heartbeat_timer() {
         for(var i = 0; i < online_list.length; i ++) {
             data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
                 state = JSON.parse(temp);
+				conso.log(state);
                 if (state.Heartbeat === 0) {
+					cosole.log('!!!heartbeat == 0!!!');
+					cosole.log(state);
                     online_list.splice(i, 1);
                     data_obj.saveOnlinelist(JSON.stringify(online_list));
                     //save online list array to redis.
