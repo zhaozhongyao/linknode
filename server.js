@@ -91,21 +91,23 @@ function heartbeatUpdate(id, timeout, data) {
 }
 
 function heartbeat_timer() {
-    var length;
     var state = DeviceState;
     if (online_list !== null) {
-        length = online_list.length;
         console.log("...Begin of Online List...");
         //online tree traversal.
         //and dicrease 1 heartbeat counter to every online device.
-        for(var i=0; i<length; i++) {
+        for(var i = 0; i < online_list.length; i ++) {
             data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
                 state = JSON.parse(temp);
                 if (state.Heartbeat === 0) {
-                    online_list.splice(i - 1, 1);
+                    online_list.splice(i, 1);
                     data_obj.saveOnlinelist(JSON.stringify(online_list));
                     //save online list array to redis.
-                    i--;
+					if (i == 0) {
+						i = 0;
+					} else {
+						i --;
+					}
                 }
             });
         }
