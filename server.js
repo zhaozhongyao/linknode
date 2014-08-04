@@ -89,6 +89,22 @@ function heartbeatUpdate(id, timeout, data) {
 		//console.log(temp);
 	});
 }
+function remove_list(state, i) {
+	console.log(online_list.length);
+	console.log(state);
+	if (state.Heartbeat === 0) {
+		console.log('!!!heartbeat == 0!!! ,i = %d', i);
+		console.log(state);
+		online_list.splice(i, 1);
+		data_obj.saveOnlinelist(JSON.stringify(online_list));
+		//save online list array to redis.
+		if (i == 0) {
+			i = 0;
+		} else {
+			i --;
+		}
+	}
+}
 
 function heartbeat_timer() {
     var state = DeviceState;
@@ -98,21 +114,8 @@ function heartbeat_timer() {
         //and dicrease 1 heartbeat counter to every online device.
         for(var i = 0; i < online_list.length; i ++) {
             data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
-                state = JSON.parse(temp);
-				console.log(online_list.length);
-				console.log(state);
-                if (state.Heartbeat === 0) {
-					console.log('!!!heartbeat == 0!!! ,i = %d', i);
-					console.log(state);
-                    online_list.splice(i, 1);
-                    data_obj.saveOnlinelist(JSON.stringify(online_list));
-                    //save online list array to redis.
-					if (i == 0) {
-						i = 0;
-					} else {
-						i --;
-					}
-                }
+                //state = JSON.parse(temp);
+				remove_list(JSON.parse(temp), i);
             });
         }
         console.log(online_list);
