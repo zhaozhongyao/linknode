@@ -257,8 +257,9 @@ exports.setheartbeat = function(devId, timeout, data, callback) {
 				}
 				client.set(devId, JSON.stringify(devinfo));
 				callback(JSON.stringify(devinfo)); 
+			} else {
+				callback(JSON.stringify(devinfo)); 
 			}
-			callback(JSON.stringify(devinfo)); 
 		}); 
 	} else {
 		console.log("Error :Redis not connected!");
