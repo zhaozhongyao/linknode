@@ -114,23 +114,31 @@ function heartbeat_timer() {
         console.log("...Begin of Online List...");
         //online tree traversal.
         //and dicrease 1 heartbeat counter to every online device.
-        for(i = 0; i < online_list.length; i ++) {
-            data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
-                state = JSON.parse(temp);
-				if (state.Heartbeat === 0) {
-            		console.log('!!!heartbeat == 0!!! ,i = %d', i);
-            		console.log(state);
-            		online_list.splice(--i, 1);
-            		data_obj.saveOnlinelist(JSON.stringify(online_list));
-            		//save online list array to redis.
-            		//if (i == 0) {
-            		//	i = 0;
-            		//} else {
-            		//	i --;
-            		//}
-            	}
-            });
-        }
+        for (var i = 0 ; i < online_list.length; i++) { 
+            (function (i) {
+                data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
+                    state = JSON.parse(temp);
+				    if (state.Heartbeat === 0) {
+           		        console.log('!!!heartbeat == 0!!! ,i = %d', i);
+            		    console.log(state);
+            		    online_list.splice(--i, 1);
+            		    data_obj.saveOnlinelist(JSON.stringify(online_list));
+            	    }
+                });
+            })(i); 
+        } 
+　　
+        //for(i = 0; i < online_list.length; i ++) {
+        //    data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
+        //        state = JSON.parse(temp);
+		//		if (state.Heartbeat === 0) {
+        //   		console.log('!!!heartbeat == 0!!! ,i = %d', i);
+        //    		console.log(state);
+        //    		online_list.splice(--i, 1);
+        //    		data_obj.saveOnlinelist(JSON.stringify(online_list));
+        //    	}
+        //    });
+        //}
         console.log(online_list);
         console.log("....End of Online List....");
     } else {
