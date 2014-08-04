@@ -109,16 +109,26 @@ function remove_list(state, i, callback) {
 
 function heartbeat_timer() {
     var state = DeviceState;
+    var i;
     if (online_list !== null) {
         console.log("...Begin of Online List...");
         //online tree traversal.
         //and dicrease 1 heartbeat counter to every online device.
-        for(var i = 0; i < online_list.length; i ++) {
+        for(i = 0; i < online_list.length; i ++) {
             data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
-                //state = JSON.parse(temp);
-				remove_list(JSON.parse(temp), i, function(temp) {
-				    console.log(temp);
-				});
+                state = JSON.parse(temp);
+				if (state.Heartbeat === 0) {
+            		console.log('!!!heartbeat == 0!!! ,i = %d', i);
+            		console.log(state);
+            		online_list.splice(i, 1);
+            		data_obj.saveOnlinelist(JSON.stringify(online_list));
+            		//save online list array to redis.
+            		if (i == 0) {
+            			i = 0;
+            		} else {
+            			i --;
+            		}
+            	}
             });
         }
         console.log(online_list);
