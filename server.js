@@ -89,7 +89,7 @@ function heartbeatUpdate(id, timeout, data) {
 		//console.log(temp);
 	});
 }
-function remove_list(state, i) {
+function remove_list(state, i, callback) {
 	console.log(online_list.length);
 	console.log(state);
 	if (state.Heartbeat === 0) {
@@ -104,6 +104,7 @@ function remove_list(state, i) {
 			i --;
 		}
 	}
+	callback(i);
 }
 
 function heartbeat_timer() {
@@ -115,7 +116,9 @@ function heartbeat_timer() {
         for(var i = 0; i < online_list.length; i ++) {
             data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
                 //state = JSON.parse(temp);
-				remove_list(JSON.parse(temp), i);
+				remove_list(JSON.parse(temp), i, function(temp) {
+				    console.log(temp);
+				});
             });
         }
         console.log(online_list);
