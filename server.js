@@ -98,7 +98,7 @@ function heartbeat_timer() {
         console.log("...Begin of Online List...");
         //online tree traversal.
         //and dicrease 1 heartbeat counter to every online device.
-        for (var i = 0 ; i < online_list.length; i++) { 
+        for (i = online_list.length - 1; i >= 0; i--) { 
             (function (i) {
                 console.log(i);
                 data_obj.setheartbeat(online_list[i].id, -1, null, function(temp) {
@@ -107,7 +107,6 @@ function heartbeat_timer() {
            		        console.log('!!!heartbeat == 0!!! ,i = %d', i);
             		    console.log(state);
             		    online_list.splice(i, 1);
-            		    i = 0;
             	    }
                 });
             })(i); 
