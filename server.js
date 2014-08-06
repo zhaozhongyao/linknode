@@ -115,6 +115,7 @@ function heartbeat_timer() {
             } 
             if(list_changed === true) {
                 data_obj.saveOnlinelist(JSON.stringify(online_list));
+                console.log('save online list.');
     　　      }
             console.log(online_list);
             console.log("....End of Online List....");
@@ -143,7 +144,9 @@ var tcp_server = net.createServer(function(socket) {
 		//parse packet,find device id.
 		if (data !== null) {
             if (data.length > 20) {
-                packet_heartbeat = JSON.parse(data);
+                var re = /\0/g;
+                var str = data.toString().replace(re, "");
+                packet_heartbeat = JSON.parse(str);
                 heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
                 //console.log('length :%d',data.length);
             }
