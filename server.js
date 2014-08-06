@@ -108,6 +108,7 @@ function heartbeat_timer() {
                		        console.log('!!!device %s offline!!!', online_list[i].id);
                 		    //console.log(state);
                 		    online_list.splice(i, 1);
+                            data_obj.saveOnlinelist(JSON.stringify(online_list));
                 		    list_changed = true;
                 	    }
                     });
