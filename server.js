@@ -113,7 +113,7 @@ function heartbeat_timer() {
                     });
                 })(i); 
             } 
-    　　      if(list_changed == true) {
+            if(list_changed === true) {
                 data_obj.saveOnlinelist(JSON.stringify(online_list));
     　　      }
             console.log(online_list);
