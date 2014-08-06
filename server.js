@@ -146,7 +146,7 @@ var tcp_server = net.createServer(function(socket) {
             if (data.length > 20) {
                 var temp = data.toString();
                 var posStart = temp.indexOf('{');
-                var posEnd = temp.indexOf('}');
+                var posEnd = temp.indexOf('}') + 1;
                 if(posStart >= 0 && posEnd >= 0) {
                     var newData = temp.substring(posStart, posEnd);
                     console.log(newData);
