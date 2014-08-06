@@ -144,10 +144,11 @@ var tcp_server = net.createServer(function(socket) {
 		//parse packet,find device id.
 		if (data !== null) {
             if (data.length > 20) {
-                var posStart = data.indexOf('{');
-                var posEnd = data.indexOf('}');
+                var temp = data.toString();
+                var posStart = temp.indexOf('{');
+                var posEnd = temp.indexOf('}');
                 if(posStart >= 0 && posEnd >= 0) {
-                    var newData = data.substring(posStart, posEnd);
+                    var newData = temp.substring(posStart, posEnd);
                     console.log(newData);
                     packet_heartbeat = JSON.parse(newData);
                     heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
