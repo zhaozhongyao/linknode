@@ -144,11 +144,15 @@ var tcp_server = net.createServer(function(socket) {
 		//parse packet,find device id.
 		if (data !== null) {
             if (data.length > 20) {
-                var re = /\0/g;
-                var str = data.toString().replace(re, "");
-                packet_heartbeat = JSON.parse(str);
-                heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
-                //console.log('length :%d',data.length);
+                var posStart = data.indexOf('{');
+                var posEnd = data.indexOf('}');
+                if(posStart >= 0 && posEnd >= 0) {
+                    var newData = data.substring(posStart, posEnd);
+                    console.log(newData);
+                    packet_heartbeat = JSON.parse(newData);
+                    heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
+                    //console.log('length :%d',data.length);
+                }
             }
 		}
 		//set device heartbeat counter to N(similer to TTL). mybe N = heartbeat_check_interval × 6
