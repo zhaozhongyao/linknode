@@ -113,7 +113,7 @@ function heartbeat_timer() {
                     });
                 })(i); 
             } 
-            if(list_changed === true) {
+            if(list_changed == true) {
                 data_obj.saveOnlinelist(JSON.stringify(online_list));
                 console.log('save online list.');
     　　      }
@@ -147,9 +147,8 @@ var tcp_server = net.createServer(function(socket) {
                 var temp = data.toString();
                 var posStart = temp.indexOf('{');
                 var posEnd = temp.indexOf('}') + 1;
-                if(posStart >= 0 && posEnd >= 0) {
+                if(posStart >= 0 && posEnd > 0) {
                     var newData = temp.substring(posStart, posEnd);
-                    console.log(newData);
                     packet_heartbeat = JSON.parse(newData);
                     heartbeatUpdate(packet_heartbeat.id, 6 ,packet_heartbeat.data);
                     //console.log('length :%d',data.length);
