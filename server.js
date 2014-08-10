@@ -347,70 +347,74 @@ app.get('/logout', function(req, res) {
 
 app.post('/register', function(req, res) {
     var newUsers = Users;
-	if(req.body.uname === "") {
-		res.redirect('/error_uname');
+    var UserInfo = req.body;
+	if(UserInfo.id === "") {
+		//res.redirect('/error_uname');
+		res.send('{"err":"Username empty!"}');
 	}
-	if(req.body.email === "") {
-		res.redirect('/error_email');
+	if(UserInfo.mail === "") {
+		//res.redirect('/error_email');
+		res.send('{"err":"Email empty!"}');
 	}
-	if(req.body.password === "") {
-		res.redirect('/error_password');
+	if(UserInfo.psw === "") {
+		//res.redirect('/error_password');
+		res.send('{"err":"Password empty!"}');
 	}
-	newUsers.USERNAME = req.body.uname;
-	newUsers.EMAIL = req.body.email;
+	newUsers.USERNAME = UserInfo.id;
+	newUsers.EMAIL = UserInfo.mail;
 	
-	pass.hash(req.body.password, function(err, salt, hash) {
+	pass.hash(UserInfo.psw, function(err, salt, hash) {
 		newUsers.SALT = salt;
 		newUsers.HASH = hash;
 		crypto.randomBytes(16, function(ex, buf) {  
 			newUsers.TOKIN = buf.toString('hex').toUpperCase();
 			data_obj.UserRegister(newUsers.USERNAME, JSON.stringify(newUsers), function(temp) {
-				//res.send(temp);
-				authenticate(newUsers.USERNAME, req.body.password, function(err, userinfo) {
-                    if(err === null) {
-                        var user = JSON.parse(userinfo);
-                        if (user.USERNAME) {
-                            req.session.regenerate(function(){
-                            req.session.user = user.USERNAME;
-                            req.session.success = 'Authenticated as ' + user.USERNAME
-                              + ' click to <a href="/logout">logout</a>. '
-                              + ' You may now access <a href="/panel">/panel</a>.';
-                            res.redirect('/panel');
-                          });
-                        } else {
-                            req.session.error = 'Authentication failed, please check your '
-                            + ' username and password.';
-                            res.redirect('back');
-                        }
-                    } else {
-                        req.session.error = 'Authentication failed, please check your '
-                            + ' username and password.';
-                        res.redirect('/login');
-                    }
-                });
+				res.send(temp);
+				//authenticate(newUsers.USERNAME, UserInfo.password, function(err, userinfo) {
+                //    if(err === null) {
+                //        var user = JSON.parse(userinfo);
+                //        if (user.USERNAME) {
+                //            req.session.regenerate(function(){
+                //            req.session.user = user.USERNAME;
+                //            req.session.success = 'Authenticated as ' + user.USERNAME
+                //              + ' click to <a href="/logout">logout</a>. '
+                //              + ' You may now access <a href="/panel">/panel</a>.';
+                //            res.redirect('/panel');
+                //          });
+                //        } else {
+                //            req.session.error = 'Authentication failed, please check your '
+                //            + ' username and password.';
+                //            res.redirect('back');
+                //        }
+                //    } else {
+                //        req.session.error = 'Authentication failed, please check your '
+                //            + ' username and password.';
+                //        res.redirect('/login');
+                //    }
+                //});
 			});
 		}); 
 	}); 
 });
 
 app.post('/login', function(req, res) {
-    //console.log(req.body.uname);
-    //console.log(req.body.password);
-    if(req.body.uname === null || req.body.password === null)
+    var loginInfo = req.body;
+    if(loginInfo.id == '' || loginInfo.psw == '')
     {
         console.log("Error ,username or password empty!");
         req.session.error = 'Authentication failed, please check your '
             + ' username and password.';
-        res.redirect('/login');
+        //res.redirect('/login');
+        res.send('{"err":"Username or password empty!"}');
         
     } else {
-        authenticate(req.body.uname, req.body.password, function(err, userinfo) {
+        authenticate(loginInfo.id, loginInfo.psw, function(err, userinfo) {
             if(err === null) {
                 var user = JSON.parse(userinfo);
                 if (user.USERNAME) {
                   // Regenerate session when signing in
                   // to prevent fixation
-                    req.session.regenerate(function(){
+                    req.session.regenerate(function() {
                     // Store the user's primary key
                     // in the session store to be retrieved,
                     // or in this case the entire user object
@@ -418,24 +422,27 @@ app.post('/login', function(req, res) {
                     req.session.success = 'Authenticated as ' + user.USERNAME
                       + ' click to <a href="/logout">logout</a>. '
                       + ' You may now access <a href="/panel">/panel</a>.';
-                    //console.log("Login success:" + user.USERNAME);
-                    res.redirect('/panel');
+                    res.send('{"success":"/panel"}');
+                    //res.redirect('/panel');
                   });
                 } else {
                   req.session.error = 'Authentication failed, please check your '
                     + ' username and password.';
-                  res.redirect('back');
+                  //res.redirect('back');
+                  res.send('{"err":"Username or password mismatch 1!"}');
                 }
             } else if (err == "DB_ERROR") {
                 console.log("ErrMsg:" + err);
                 req.session.error = 'DBERROR';
-                res.redirect('/login');
+                //res.redirect('/login');
+                res.send('{"err":"Server database error!"}');
             } else {
                 //console.log("ErrMsg:" + err);
                 //console.log("UserInfo:" + userinfo);
                 req.session.error = 'Authentication failed, please check your '
                     + ' username and password.';
-                res.redirect('/login');
+                //res.redirect('/login');
+                res.send('{"err":"Username or password mismatch!"}');
             }
         });
     }
@@ -463,7 +470,7 @@ app.get("/user/delete" ,restrict , function(req, res) {
 
 app.get("/user" ,restrict , function(req, res) {
 	data_obj.UserQuery(req.session.user , function(UserInfo) {
-		if(UserInfo === undefined || UserInfo === null ||UserInfo ==="") {
+		if(UserInfo === undefined || UserInfo === null || UserInfo === "") {
 			res.send("User not found!");
 		}
 		else

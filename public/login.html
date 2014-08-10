@@ -27,7 +27,6 @@
                         <h3 class="panel-title">User Authentication</h3>
                     </div>
                     <div class="panel-body" id="panel-body">
-                        <form role="form" method="post" action="/login" onsubmit="return check()">
                             <fieldset>
                                 <div class="form-group">
                                     <input id = "username" class="form-control" placeholder="UserName" name="uname" type="input-medium" autofocus>
@@ -41,12 +40,10 @@
                                     </label>
                                 </div>
                                 <!-- Change this to a button or input when using this as a form -->
-                                
-								<input type="submit" class="btn btn-lg btn-success btn-block" bt="login" value="Login">
+                                <button class="btn btn-lg btn-success btn-block">Login</button>
 								<p></p>
 								<center><a href="/register">Didn't have an account?</a></center>
                             </fieldset>
-                        </form>
                     </div>
                 </div>
             </div>
@@ -57,18 +54,28 @@
     <script src="js/jquery-1.10.2.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/plugins/metisMenu/jquery.metisMenu.js"></script>
-    <script language="javascript"> 
-    function check() 
-    { 
-        if(document.getElementById("username").value === "") {
-            alert("please input username!"); 
-            return false;
-        } else if(document.getElementById("password").value === "") {
-            alert("please input password!"); 
-            return false;
-        } 
-        return true;
-    } 
+    <script>
+    $(document).ready(function(){
+      $("button").click(function(){
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+        $.post("/login",
+        {
+          id:username,
+          psw:password
+        },
+        function(data,status){
+            var res = JSON.parse(data);
+            if(status == 'success') {
+                if(res.err !== undefined) {
+                    alert(res.err);
+                } else {
+                    window.location.href=res.success;
+                }
+            }
+        });
+      });
+    });
     </script>
     <!-- SB Admin Scripts - Include with every page -->
     <script src="js/sb-admin.js"></script>

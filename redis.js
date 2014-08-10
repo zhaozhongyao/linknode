@@ -69,17 +69,16 @@ exports.UserRegister = function(Username, JsonUser, callback) {
 						if (err) {
 							console.log(err);
 						}
-						//console.log(result);
-						callback(result);    
+						callback('{"success":"/login"}');
 					});
-				} else {
-					callback("Username already exist!");  
+				} else {  
+					callback('{"err":"Usernme already exist!"}');
 				}
 			});  
 		}
 	} else {
 		console.log("Error :Redis not connected!");
-		callback("DB_ERR");
+		callback('{"err":"Server database error!"}');
 	}
 };
 

@@ -27,10 +27,9 @@
                         <h3 class="panel-title">User Register</h3>
                     </div>
                     <div class="panel-body">
-                        <form role="form" method="post" action="/register" onsubmit="return check()">
                             <fieldset>
 								<div class="form-group">  
-									<input name="email" type="text" placeholder="E-MAIL" class="form-control" required pattern="^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$"  
+									<input id="email" type="text" placeholder="E-MAIL" class="form-control" required pattern="^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$"  
 										title="Email Address format：xxx@xxx.xxx" autofocus>  									
 									<!-- <span class="input-group-addon">E-MAIL</span> -->
 								</div> 
@@ -48,9 +47,7 @@
                                     </label>
                                 </div>
                                 <!-- Change this to a button or input when using this as a form -->
-								<input type="submit" class="btn btn-lg btn-success btn-block" value="Register">
-                            </fieldset>
-                        </form>
+                                <button class="btn btn-lg btn-success btn-block">Register</button>
                     </div>
                 </div>
             </div>
@@ -61,21 +58,36 @@
     <script src="js/jquery-1.10.2.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/plugins/metisMenu/jquery.metisMenu.js"></script>
-    <script language="javascript"> 
-    function check() 
-    { 
-        if(document.getElementById("username").value === "") {
-            alert("please input username!"); 
-            return false;
-        } else if(document.getElementById("password").value === "") {
-            alert("please input password!"); 
-            return false;
-        } else if(document.getElementById("checkbox1").checked === false) {
+    
+    <script>
+    $(document).ready(function(){
+      $("button").click(function(){
+        var email = document.getElementById("email").value;
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+        if(document.getElementById("checkbox1").checked === false) {
             alert("please accept the user agreement!"); 
             return false;
         }
-        return true;
-    } 
+        $.post("/register",
+        {
+          mail:email,
+          id:username,
+          psw:password
+        },
+        function(data,status){
+            var res = JSON.parse(data);
+            if(status == 'success') {
+                if(res.err !== undefined) {
+                    alert(res.err);
+                } else {
+                    alert("User register success! \nRedir to login page.");
+                    window.location.href=res.success;
+                }
+            }
+        });
+      });
+    });
     </script>
     <!-- SB Admin Scripts - Include with every page -->
     <script src="js/sb-admin.js"></script> 
