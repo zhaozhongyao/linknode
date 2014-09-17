@@ -1,33 +1,44 @@
 /*
-	Aerial 1.0 by HTML5 UP
+	Tessellate by HTML5 UP
 	html5up.net | @n33co
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
-/* Wrapper */
+/*********************************************************************************/
+/* Main Sections                                                                 */
+/*********************************************************************************/
 
-	#wrapper {
-		opacity: 1;
+	.main
+	{
 	}
 
-/* Overlay */
-
-	#overlay {
-		opacity: 1;
-	}
-
-/* Header */
-
-	#header {
-		opacity: 1;
-	}
-
-		#header nav li {
-			opacity: 1;
+		.main > .content
+		{
 		}
 
-/* Footer */
+		.main > .content.style1
+		{
+			background:	url('../images/bgtr.svg') top right no-repeat,
+						url('../images/bgbl.svg') bottom left no-repeat,
+						url('../images/bgbl.svg') bottom left no-repeat,
+						url('../images/overlay.png'),
+						url('images/content-style1.svg');
+		}
 
-	#footer {
-		background-image: url("images/footer.svg");
-	}
+		.main > .content.style2
+		{
+			background:	url('../images/bgtr.svg') top right no-repeat,
+						url('../images/bgbl.svg') bottom left no-repeat,
+						url('../images/bgbl.svg') bottom left no-repeat,
+						url('../images/overlay.png'),
+						url('images/content-style2.svg');
+		}
+
+		.main > .content.style3
+		{
+			background:	url('../images/bgtr.svg') top right no-repeat,
+						url('../images/bgbl.svg') bottom left no-repeat,
+						url('../images/bgbl.svg') bottom left no-repeat,
+						url('../images/overlay.png'),
+						url('images/content-style3.svg');
+		}

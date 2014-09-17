@@ -85,6 +85,14 @@
 			padding-top: 0 !important;
 		}
 
+		.row.uniform > * > :first-child {
+			margin-top: 0;
+		}
+
+		.row.uniform > * > :last-child {
+			margin-bottom: 0;
+		}
+
 		/* Normal */
 
 			.row > * {
@@ -102,6 +110,11 @@
 				margin-left: -40px;
 			}
 
+			.row + .row.uniform > * {
+				/* padding: (gutters.vertical) 0 0 (gutters.vertical) */
+				padding: 40px 0 0 40px;
+			}
+
 		/* Flush */
 
 			.row.flush > * {
@@ -114,6 +127,10 @@
 
 			.row.flush {
 				margin-left: 0;
+			}
+
+			.row + .row.uniform.flush > * {
+				padding: 0;
 			}
 
 		/* Quarter */
@@ -133,6 +150,11 @@
 				margin-left: -10px;
 			}
 
+			.row + .row.uniform.quarter > * {
+				/* padding: (gutters.vertical * 0.25) 0 0 (gutters.vertical * 0.25) */
+				padding: 10px 0 0 10px;
+			}
+
 		/* Half */
 
 			.row.half > * {
@@ -148,6 +170,11 @@
 			.row.half {
 				/* margin-left: -(gutters * 0.5) */
 				margin-left: -20px;
+			}
+
+			.row + .row.uniform.half > * {
+				/* padding: (gutters.vertical * 0.5) 0 0 (gutters.vertical * 0.5) */
+				padding: 20px 0 0 20px;
 			}
 
 		/* One and (a) Half */
@@ -167,6 +194,11 @@
 				margin-left: -60px;
 			}
 
+			.row + .row.uniform.oneandhalf > * {
+				/* padding: (gutters.vertical * 1.5) 0 0 (gutters.vertical * 1.5) */
+				padding: 60px 0 0 60px;
+			}
+
 		/* Double */
 
 			.row.double > * {
@@ -182,4 +214,9 @@
 			.row.double {
 				/* margin-left: -(gutters * 2) */
 				margin-left: -80px;
+			}
+			
+			.row + .row.uniform.double > * {
+				/* padding: (gutters.vertical * 2) 0 0 (gutters.vertical * 2) */
+				padding: 80px 0 0 80px;
 			}
